@@ -45,9 +45,10 @@ class Login(Frame):
         # API call to verify login credentials (replace with your actual API interaction)
         response = user.userLogin(username, password)
 
-        if response['success'] == True:
+        if "success" in response and response['success'] == True:
             # Call fetchUserInfo to update user information
             self.controller.screens["Home"].prepareHome()
+            self.controller.screens["PersonalInfo"].preparePersonalInfo()
             self.controller.showFrame("Home")
         else:
-            messagebox.showerror("Error", response['message'])
+            messagebox.showerror("Error", "Thông tin đăng nhập không chính xác. Vui lòng thử lại.")
