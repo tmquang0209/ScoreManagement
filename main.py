@@ -1,12 +1,16 @@
 from tkinter import *
 from tkinter.ttk import *
+
+import json
+
 from screens.home import Home
 from screens.login import Login
 from screens.years import Years
 from screens.YearAction.create import YearCreate
-from screens.YearAction.update import YearUpdate
+from screens.personalInfo import PersonalInfo
+from screens.changePassword import ChangePassword
 
-from API.user import verifyToken
+from API.user import verifyToken, getPersonalInfo
 
 import modules.localStorage as localStorage
 
@@ -29,12 +33,14 @@ class ScoreApp(Tk):
         self.container.grid_columnconfigure(0, minsize=600, weight=2)
 
         self.screens = {}
-        for F in (Home, Login, Years, YearCreate, YearUpdate):
+        for F in (Home, Login, Years, YearCreate, PersonalInfo, ChangePassword):
             pageName = F.__name__
 
             frame = F(parent=self.container, controller=self)
             self.screens[pageName] = frame
             frame.grid(row=0, column=0, sticky="nsew")
+
+        self.screens["PersonalInfo"].preparePersonalInfo()
 
         self.showFrame(self.currentScreen)
         self.displayMenu()
@@ -53,11 +59,13 @@ class ScoreApp(Tk):
 
         if token:
             response = verifyToken(token)
-            print(response)
             if response["success"]:
+                infoResponse = getPersonalInfo(response["data"][0])
+                localStorage.setItem("user", json.dumps(infoResponse["data"][0]))
                 localStorage.setItem("token", response["data"][0])
                 return token
             else:
+                localStorage.clear()
                 return None
         else:
             return None

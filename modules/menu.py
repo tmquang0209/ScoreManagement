@@ -12,14 +12,18 @@ class MenuManager:
         self.localStorage.clear()
         self.controller.showFrame("Login")
 
+    def handleOpenPersonalInfo(self):
+        self.controller.screens["PersonalInfo"].preparePersonalInfo()
+        self.controller.showFrame("PersonalInfo")
+
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
 
         menu = Menu(self.controller)
         accountMenu = Menu(menu, tearoff=0)
-        accountMenu.add_command(label="Thông tin cá nhân")
-        accountMenu.add_command(label="Đổi mật khẩu")
+        accountMenu.add_command(label="Thông tin cá nhân", command=lambda: self.controller.showFrame("PersonalInfo"))
+        accountMenu.add_command(label="Đổi mật khẩu", command=lambda: self.controller.showFrame("ChangePassword"))
         accountMenu.add_separator()
         accountMenu.add_command(label="Đăng xuất", command=self.logout)
         menu.add_cascade(label="Tài khoản", menu=accountMenu)
