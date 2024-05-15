@@ -33,22 +33,37 @@ def userLogin(username, password):
 
     response = requests.request("POST", url, headers=headers, data=payload)
     loginData = response.json()
+    if "data" in loginData and len(loginData["data"]) > 0:
+        if('token' in loginData["data"][0]):
+            token = loginData['data'][0]['token']
+            localStorage.setItem("token", token)
 
-    if('token' in loginData["data"][0]):
-        token = loginData['data'][0]['token']
-        localStorage.setItem("token", token)
+            infoResponse = getPersonalInfo(token)
 
-        infoResponse = getPersonalInfo(token)
-
-        if infoResponse['success'] == True:
-            if 'data' in infoResponse and len(infoResponse['data']) > 0:
-                data = infoResponse['data'][0]
-                localStorage.setItem("user", json.dumps(data))
+            if infoResponse['success'] == True:
+                if 'data' in infoResponse and len(infoResponse['data']) > 0:
+                    data = infoResponse['data'][0]
+                    localStorage.setItem("user", json.dumps(data))
 
     return loginData
 
 
-def updateEmployee(employee_id, data):
-    url = API_URL + '/employee/' + str(employee_id)
-    response = requests.put(url, json=data)
+def updateInfo(id, data):
+    url = API_URL + '/user/update/' + str(id)
+    token = localStorage.getItem("token")
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+    }
+    response = requests.put(url, json=data, headers=headers)
+    return response.json()
+
+def changePassword(id, data):
+    url = API_URL + '/user/changePassword/' + str(id)
+    token = localStorage.getItem("token")
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+    }
+    response = requests.put(url, json=data, headers=headers)
     return response.json()
