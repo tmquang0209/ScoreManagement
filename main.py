@@ -3,6 +3,10 @@ from tkinter.ttk import *
 from screens.home import Home
 from screens.login import Login
 from screens.years import Years
+from screens.YearAction.create import YearCreate
+from screens.YearAction.update import YearUpdate
+
+from API.user import verifyToken
 
 import modules.localStorage as localStorage
 
@@ -25,8 +29,9 @@ class ScoreApp(Tk):
         self.container.grid_columnconfigure(0, minsize=600, weight=2)
 
         self.screens = {}
-        for F in (Home, Login, Years):
+        for F in (Home, Login, Years, YearCreate, YearUpdate):
             pageName = F.__name__
+
             frame = F(parent=self.container, controller=self)
             self.screens[pageName] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -45,8 +50,15 @@ class ScoreApp(Tk):
 
     def checkToken(self):
         token = self.localStorage.getItem("token")
+
         if token:
-            return token
+            response = verifyToken(token)
+            print(response)
+            if response["success"]:
+                localStorage.setItem("token", response["data"][0])
+                return token
+            else:
+                return None
         else:
             return None
 

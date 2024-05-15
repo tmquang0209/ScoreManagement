@@ -56,7 +56,7 @@ class MenuManager:
 
             subMenu = Menu(semesterMenu, tearoff=0)
             subMenu.add_command(label="Danh sách năm học", command=lambda: self.controller.showFrame("Years"))
-            subMenu.add_command(label="Thêm năm học mới", command=lambda: self.controller.showFrame("Years"))
+            subMenu.add_command(label="Thêm năm học mới", command=lambda: self.controller.showFrame("YearCreate"))
             semesterMenu.add_cascade(label="Năm học", menu=subMenu)
 
             subMenu1 = Menu(semesterMenu, tearoff=0)
