@@ -26,6 +26,10 @@ class MenuManager:
         self.controller.screens["Department"].initData()
         self.controller.showFrame("Department")
 
+    def handleOpenMajors(self):
+        self.controller.screens["Major"].initData()
+        self.controller.showFrame("Major")
+
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
@@ -47,13 +51,13 @@ class MenuManager:
             menu.add_cascade(label="Môn học", menu=subjectMenu)
 
             departmentMenu = Menu(menu, tearoff=0)
-            departmentMenu.add_command(label="Danh sách khoa/ phòng ban", command=lambda: self.controller.showFrame("Department"))
+            departmentMenu.add_command(label="Danh sách khoa/ phòng ban", command=self.handleOpenDepartments)
             departmentMenu.add_command(label="Thêm khoa/ phòng ban mới", command=lambda: self.controller.showFrame("DepartmentCreate"))
             menu.add_cascade(label="Quản lý khoa/ phòng ban", menu=departmentMenu)
 
             majorMenu = Menu(menu, tearoff=0)
-            majorMenu.add_command(label="Danh sách ngành học")
-            majorMenu.add_command(label="Thêm ngành học mới")
+            majorMenu.add_command(label="Danh sách ngành học", command=self.handleOpenMajors)
+            majorMenu.add_command(label="Thêm ngành học mới", command=lambda: self.controller.showFrame("MajorCreate"))
             menu.add_cascade(label="Ngành học", menu=majorMenu)
 
             teacherMenu = Menu(menu, tearoff=0)
