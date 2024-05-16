@@ -17,8 +17,6 @@ class Department(Frame):
         title = Label(self, text="Danh sách phòng ban", font=("Helvetica", 18))
         title.pack(side="top", fill="x", pady=10, padx=10)
 
-        self.departmentsList = self.initData()
-
         # Tree
         self.tree = Treeview(self, columns=("ID", "Code", "Name"), show="headings")
         self.tree.column("ID", width=100)
@@ -27,8 +25,7 @@ class Department(Frame):
         self.tree.heading("Name", text="Tên phòng ban")
         self.tree.pack()
 
-        for department in self.departmentsList:
-            self.tree.insert("", "end", text=department["id"], values=(department["id"], department["code"], department["name"]))
+        self.initData()
 
         self.tree.bind("<Double-1>", self.editDepartment)
         self.tree.bind("<Delete>", self.handleDelete)
@@ -36,9 +33,8 @@ class Department(Frame):
     def initData(self):
         response = department.getDepartments()
         if "success" in response and response["success"]:
-            data = response["data"]
-            return data
-        return []
+            for item in response["data"]:
+                self.insertItemToTree(item)
 
     def handleUpdateDepartmentTree(self, id, data):
         for selectedItem in self.tree.selection():

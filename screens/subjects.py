@@ -20,19 +20,17 @@ class Subjects(Frame):
         self.searchBar = Entry(self)
         self.searchBar.pack(pady=10)
 
-        self.subjectList = self.initData()
-
         # tree view
         self.columns = ("#1", "#2", "#3", "#4")
         self.tree = Treeview(self, columns=self.columns, show="headings")
 
+        self.tree.column("#1", width=150)
         self.tree.heading("#1", text="Mã môn")
         self.tree.heading("#2", text="Tên môn")
         self.tree.heading("#3", text="Số tín chỉ")
         self.tree.heading("#4", text="Tỷ lệ điểm")
 
-        for subject in self.subjectList:
-            self.tree.insert("", "end", text=subject["id"], values=(subject["subjectCode"], subject["subjectName"], subject["credit"], subject["rate"]),)
+        self.initData()
 
         self.tree.bind("<Double-1>", self.editSubject)
         self.tree.bind("<Delete>", self.handleDeleteSubject)
@@ -41,8 +39,8 @@ class Subjects(Frame):
     def initData(self):
         response = subject.getAllSubjects()
         if "success" in response and response["success"]:
-            return response["data"]
-        return []
+            for item in response["data"]:
+                self.insertItemToTree(item)
 
     def insertItemToTree(self, subject):
         self.tree.insert("", "end", text=subject["id"], values=(subject["subjectCode"], subject["subjectName"], subject["credit"], subject["rate"]))
