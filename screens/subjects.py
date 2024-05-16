@@ -8,6 +8,7 @@ class Subjects(Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+
         self.initUI()
         self.initData()
 
@@ -30,13 +31,15 @@ class Subjects(Frame):
         self.tree.heading("#3", text="Số tín chỉ")
         self.tree.heading("#4", text="Tỷ lệ điểm")
 
-        self.initData()
-
         self.tree.bind("<Double-1>", self.editSubject)
         self.tree.bind("<Delete>", self.handleDeleteSubject)
         self.tree.pack(padx=10)
 
     def initData(self):
+        # remove all items in tree
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
         response = subject.getAllSubjects()
         if "success" in response and response["success"]:
             for item in response["data"]:

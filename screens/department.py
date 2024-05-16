@@ -25,13 +25,16 @@ class Department(Frame):
         self.tree.heading("Name", text="Tên phòng ban")
         self.tree.pack()
 
-        self.initData()
-
         self.tree.bind("<Double-1>", self.editDepartment)
         self.tree.bind("<Delete>", self.handleDelete)
 
     def initData(self):
+        # remove all items in tree
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
         response = department.getDepartments()
+
         if "success" in response and response["success"]:
             for item in response["data"]:
                 self.insertItemToTree(item)
