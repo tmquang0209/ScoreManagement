@@ -17,7 +17,9 @@ class PersonalInfo(Frame):
 
         self.controller.config(menu=None)
 
-        self.preparePersonalInfo()
+    def clearPersonalInfo(self):
+            for widget in self.winfo_children():
+                widget.destroy()
 
     def preparePersonalInfo(self):
         personalInfo = self.localStorage.getItem("user")
@@ -27,10 +29,10 @@ class PersonalInfo(Frame):
 
         # Welcome label
         self.welcomeLabel = Label(self, text="Thông tin cá nhân", font=("Helvetica", 18))
-        self.welcomeLabel.grid(row=0, column=0, columnspan=3, pady=10, padx=10)
+        self.welcomeLabel.pack(side="top", fill="x", pady=10, padx=10)
 
         formContainer = Frame(self, padding=10)
-        formContainer.grid(row=1, column=2, columnspan=3, pady=10)
+        formContainer.pack()
 
         # Code
         codeLabel = Label(formContainer, text="Mã: ")
@@ -38,7 +40,7 @@ class PersonalInfo(Frame):
 
         codeEntry = Entry(formContainer)
         codeEntry.grid(row=0, column=1, padx=10, pady=5)
-        codeEntry.insert(0, personalInfo["code"] if "code" in personalInfo else "")
+        codeEntry.insert(0, personalInfo["code"] if "code" in personalInfo else personalInfo["teacherCode"] if "teacherCode" in personalInfo else "")
         codeEntry.config(state="disabled")
 
         # Name
@@ -89,7 +91,7 @@ class PersonalInfo(Frame):
 
         dobEntry = Entry(formContainer)
         dobEntry.grid(row=6, column=1, padx=10, pady=5)
-        dobEntry.insert(0, personalInfo["dob"] if "dob" in personalInfo else "")
+        dobEntry.insert(0, personalInfo["dob"] if "dob" in personalInfo and personalInfo["dob"] != None else "")
         dobEntry.config(state="readonly")
 
         # Button to open calendar
@@ -103,9 +105,9 @@ class PersonalInfo(Frame):
     def openCalendar(self, dobEntry):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
-        birthYear = personalInfo["dob"].split("-")[0] if "dob" in personalInfo else 2000
-        birthMonth = personalInfo["dob"].split("-")[1] if "dob" in personalInfo else 1
-        birthDay = personalInfo["dob"].split("-")[2] if "dob" in personalInfo else 1
+        birthYear = personalInfo["dob"].split("-")[0] if "dob" in personalInfo and personalInfo["dob"] != None else 2000
+        birthMonth = personalInfo["dob"].split("-")[1] if "dob" in personalInfo and personalInfo["dob"] != None else 1
+        birthDay = personalInfo["dob"].split("-")[2] if "dob" in personalInfo and personalInfo["dob"] != None else 1
 
         top = Toplevel(self)
         cal = Calendar(top, selectmode="day", year=int(birthYear), month=int(birthMonth), day=int(birthDay))
