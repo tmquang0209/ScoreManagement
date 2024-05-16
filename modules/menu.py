@@ -22,6 +22,10 @@ class MenuManager:
         self.controller.screens["Subjects"].initData()
         self.controller.showFrame("Subjects")
 
+    def handleOpenDepartments(self):
+        self.controller.screens["Department"].initData()
+        self.controller.showFrame("Department")
+
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
@@ -43,8 +47,8 @@ class MenuManager:
             menu.add_cascade(label="Môn học", menu=subjectMenu)
 
             departmentMenu = Menu(menu, tearoff=0)
-            departmentMenu.add_command(label="Danh sách khoa/ phòng ban")
-            departmentMenu.add_command(label="Thêm khoa/ phòng ban mới")
+            departmentMenu.add_command(label="Danh sách khoa/ phòng ban", command=lambda: self.controller.showFrame("Department"))
+            departmentMenu.add_command(label="Thêm khoa/ phòng ban mới", command=lambda: self.controller.showFrame("DepartmentCreate"))
             menu.add_cascade(label="Quản lý khoa/ phòng ban", menu=departmentMenu)
 
             majorMenu = Menu(menu, tearoff=0)
