@@ -9,12 +9,18 @@ class MenuManager:
         self.localStorage = localStorage
 
     def logout(self):
+        self.controller.screens["PersonalInfo"].clearPersonalInfo()
         self.localStorage.clear()
+        self.controller.config(menu=None)
         self.controller.showFrame("Login")
 
     def handleOpenPersonalInfo(self):
         self.controller.screens["PersonalInfo"].preparePersonalInfo()
         self.controller.showFrame("PersonalInfo")
+
+    def handleOpenSubjects(self):
+        self.controller.screens["Subjects"].initData()
+        self.controller.showFrame("Subjects")
 
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
@@ -22,7 +28,7 @@ class MenuManager:
 
         menu = Menu(self.controller)
         accountMenu = Menu(menu, tearoff=0)
-        accountMenu.add_command(label="Thông tin cá nhân", command=lambda: self.controller.showFrame("PersonalInfo"))
+        accountMenu.add_command(label="Thông tin cá nhân", command=self.handleOpenPersonalInfo)
         accountMenu.add_command(label="Đổi mật khẩu", command=lambda: self.controller.showFrame("ChangePassword"))
         accountMenu.add_separator()
         accountMenu.add_command(label="Đăng xuất", command=self.logout)
@@ -32,8 +38,8 @@ class MenuManager:
 
         if roleName == "ADMIN":
             subjectMenu = Menu(menu, tearoff=0)
-            subjectMenu.add_command(label="Danh sách môn học")
-            subjectMenu.add_command(label="Thêm môn học mới")
+            subjectMenu.add_command(label="Danh sách môn học", command=self.handleOpenSubjects)
+            subjectMenu.add_command(label="Thêm môn học mới", command=lambda: self.controller.showFrame("SubjectCreate"))
             menu.add_cascade(label="Môn học", menu=subjectMenu)
 
             departmentMenu = Menu(menu, tearoff=0)

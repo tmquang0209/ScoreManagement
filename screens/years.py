@@ -88,7 +88,7 @@ class Years(Frame):
 
     def handleEditYear(self, root, selectedItem, id, name, tuition):
         response = year.updateYear(id, name, tuition)
-        print(response)
+        
         if response:
             root.destroy()
             self.tree.item(selectedItem, values=(name, tuition))
