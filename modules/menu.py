@@ -30,6 +30,10 @@ class MenuManager:
         self.controller.screens["Major"].initData()
         self.controller.showFrame("Major")
 
+    def handleOpenTeachers(self):
+        self.controller.screens["Teacher"].initData()
+        self.controller.showFrame("Teacher")
+
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
@@ -61,8 +65,8 @@ class MenuManager:
             menu.add_cascade(label="Ngành học", menu=majorMenu)
 
             teacherMenu = Menu(menu, tearoff=0)
-            teacherMenu.add_command(label="Danh sách giảng viên")
-            teacherMenu.add_command(label="Thêm giảng viên mới")
+            teacherMenu.add_command(label="Danh sách giảng viên", command=self.handleOpenTeachers)
+            teacherMenu.add_command(label="Thêm giảng viên mới", command=lambda: self.controller.showFrame("TeacherCreate"))
             menu.add_cascade(label="Giảng viên", menu=teacherMenu)
 
             studentMenu = Menu(menu, tearoff=0)
