@@ -1,4 +1,3 @@
-import json
 import requests
 
 from API.url import API_URL
