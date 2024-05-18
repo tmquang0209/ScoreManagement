@@ -38,6 +38,14 @@ class MenuManager:
         self.controller.screens["Student"].initData()
         self.controller.showFrame("Student")
 
+    def handleOpenSemesters(self):
+        self.controller.screens["Semester"].initData()
+        self.controller.showFrame("Semester")
+
+    def handleOpenSemesterCreate(self):
+        # self.controller.screens["SemesterCreate"].initUI()
+        self.controller.showFrame("SemesterCreate")
+
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
@@ -68,6 +76,12 @@ class MenuManager:
             majorMenu.add_command(label="Thêm ngành học mới", command=lambda: self.controller.showFrame("MajorCreate"))
             menu.add_cascade(label="Ngành học", menu=majorMenu)
 
+            employeeMenu = Menu(menu, tearoff=0)
+            employeeMenu.add_command(label="Danh sách nhân viên")
+            employeeMenu.add_command(label="Thêm nhân viên mới")
+
+            menu.add_cascade(label="Nhân viên", menu=employeeMenu)
+
             teacherMenu = Menu(menu, tearoff=0)
             teacherMenu.add_command(label="Danh sách giảng viên", command=self.handleOpenTeachers)
             teacherMenu.add_command(label="Thêm giảng viên mới", command=lambda: self.controller.showFrame("TeacherCreate"))
@@ -78,19 +92,23 @@ class MenuManager:
             studentMenu.add_command(label="Thêm sinh viên mới", command=lambda: self.controller.showFrame("StudentCreate"))
             menu.add_cascade(label="Sinh viên", menu=studentMenu)
 
-            semesterMenu = Menu(menu, tearoff=0)
+            yearMenu = Menu(menu, tearoff=0)
 
-            subMenu = Menu(semesterMenu, tearoff=0)
-            subMenu.add_command(label="Danh sách năm học", command=lambda: self.controller.showFrame("Years"))
-            subMenu.add_command(label="Thêm năm học mới", command=lambda: self.controller.showFrame("YearCreate"))
-            semesterMenu.add_cascade(label="Năm học", menu=subMenu)
+            subYearMenu = Menu(yearMenu, tearoff=0)
+            subYearMenu.add_command(label="Danh sách năm học", command=lambda: self.controller.showFrame("Years"))
+            subYearMenu.add_command(label="Thêm năm học mới", command=lambda: self.controller.showFrame("YearCreate"))
+            yearMenu.add_cascade(label="Năm học", menu=subYearMenu)
 
-            subMenu1 = Menu(semesterMenu, tearoff=0)
-            subMenu1.add_command(label="Danh sách học kỳ")
-            subMenu1.add_command(label="Thêm học kỳ mới")
-            semesterMenu.add_cascade(label="Học kỳ", menu=subMenu1)
+            subSemesterMenu = Menu(yearMenu, tearoff=0)
+            subSemesterMenu.add_command(label="Danh sách học kỳ", command=self.handleOpenSemesters)
+            subSemesterMenu.add_command(label="Thêm học kỳ mới", command=self.handleOpenSemesterCreate)
+            yearMenu.add_cascade(label="Học kỳ", menu=subSemesterMenu)
 
-            menu.add_cascade(label="Năm học", menu=semesterMenu)
+            scheduleMenu = Menu(menu, tearoff=0)
+            scheduleMenu.add_command(label="Danh sách lịch học")
+            scheduleMenu.add_command(label="Thêm lịch học mới")
+
+            menu.add_cascade(label="Năm học", menu=yearMenu)
 
         elif roleName == "MANAGER":
             managerMenu = Menu(menu, tearoff=0)

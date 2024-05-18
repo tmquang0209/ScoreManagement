@@ -14,6 +14,7 @@ from screens.department import Department, DepartmentCreate
 from screens.major import Major, MajorCreate
 from screens.teacher import Teacher, TeacherCreate
 from screens.student import Student, StudentCreate
+from screens.semester import Semester, SemesterCreate
 
 from API.user import verifyToken, getPersonalInfo
 
@@ -38,7 +39,7 @@ class ScoreApp(Tk):
         self.container.grid_columnconfigure(0, minsize=600, weight=2)
 
         self.screens = {}
-        for F in (Home, Login, Years, YearCreate, PersonalInfo, ChangePassword, Subjects, SubjectCreate, Department, DepartmentCreate, Major, MajorCreate, Teacher, TeacherCreate, Student, StudentCreate):
+        for F in (Home, Login, Years, YearCreate, PersonalInfo, ChangePassword, Subjects, SubjectCreate, Department, DepartmentCreate, Major, MajorCreate, Teacher, TeacherCreate, Student, StudentCreate, Semester, SemesterCreate):
             pageName = F.__name__
 
             frame = F(parent=self.container, controller=self)
