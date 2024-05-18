@@ -11,7 +11,6 @@ class Department(Frame):
         self.controller = controller
 
         self.initUI()
-        self.initData()
 
     def initUI(self):
         title = Label(self, text="Danh sách phòng ban", font=("Helvetica", 18))

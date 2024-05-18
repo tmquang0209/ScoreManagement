@@ -10,7 +10,6 @@ class Major(Frame):
         self.controller = controller
 
         self.initUI()
-        self.initData()
 
     def initUI(self):
         # Major label

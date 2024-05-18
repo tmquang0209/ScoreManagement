@@ -13,7 +13,6 @@ class Teacher(Frame):
         self.controller = controller
 
         self.initUI()
-        self.initData()
 
     def initUI(self):
         title = Label(self, text="Danh sách giáo viên", font=("Helvetica", 18))

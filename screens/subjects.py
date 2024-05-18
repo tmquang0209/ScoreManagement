@@ -10,7 +10,6 @@ class Subjects(Frame):
         self.controller = controller
 
         self.initUI()
-        self.initData()
 
     def initUI(self):
         # Subject label
