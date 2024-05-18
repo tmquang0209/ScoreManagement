@@ -46,6 +46,10 @@ class MenuManager:
         # self.controller.screens["SemesterCreate"].initUI()
         self.controller.showFrame("SemesterCreate")
 
+    def handleOpenSchedule(self):
+        self.controller.screens["Schedule"].initData()
+        self.controller.showFrame("Schedule")
+
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
@@ -105,8 +109,9 @@ class MenuManager:
             yearMenu.add_cascade(label="Học kỳ", menu=subSemesterMenu)
 
             scheduleMenu = Menu(menu, tearoff=0)
-            scheduleMenu.add_command(label="Danh sách lịch học")
-            scheduleMenu.add_command(label="Thêm lịch học mới")
+            scheduleMenu.add_command(label="Danh sách lịch học", command=self.handleOpenSchedule)
+            scheduleMenu.add_command(label="Thêm lịch học mới", command=lambda: self.controller.showFrame("ScheduleCreate"))
+            yearMenu.add_cascade(label="Lịch học", menu=scheduleMenu)
 
             menu.add_cascade(label="Năm học", menu=yearMenu)
 
