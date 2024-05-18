@@ -53,7 +53,6 @@ class Teacher(Frame):
             self.tree.delete(item)
 
         response = teacher.getAllTeachers()
-        print(response)
 
         if "success" in response and response["success"]:
             for item in response["data"]:
@@ -133,17 +132,6 @@ class Teacher(Frame):
         address = Entry(formController, width=25)
         address.grid(row=7, column=1, padx=5, pady=10)
         address.insert(0, data[7])
-
-        print({
-            "teacherCode": code.get(),
-            "name": name.get(),
-            "dob": dobEntry.get(),
-            "gender": genderEntry.get(),
-            "major": majorsList[departmentEntry.current()],
-            "email": email.get(),
-            "phone": phone.get(),
-            "address": address.get()
-        })
 
         submitButton = Button(formController, text="Cập nhật", command=lambda: self.handleEditTeacher(root, id, {
             "teacherCode": code.get(),
