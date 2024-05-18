@@ -86,7 +86,16 @@ class Semester(Frame):
 
 
     def deleteSemester(self, event):
-        pass
+        confirmation = messagebox.askyesno("Confirmation", "Bạn có muốn xóa học kỳ này không?")
+        if confirmation:
+            id = event.widget.item(event.widget.selection()[0])["text"]
+            response = semesterAPI.deleteSemester(id)
+
+            if "success" in response and response["success"]:
+                messagebox.showinfo("Success", response["message"])
+                self.tree.delete(event.widget.selection()[0])
+            else:
+                messagebox.showerror("Error", response["message"])
 
 class SemesterCreate(Frame):
     def __init__(self, parent, controller):

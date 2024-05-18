@@ -161,7 +161,18 @@ class Student(Frame):
         Button(top, text="Chọn", command=grab_date).pack(pady=10)
 
     def deleteStudent(self, event):
-        pass
+        confirmation = messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn xóa sinh viên này không?")
+        if confirmation:
+            selected = event.widget.selection()[0]
+            studentId = event.widget.item(selected)["text"]
+
+            response = studentAPI.deleteStudent(studentId)
+
+            if response["success"]:
+                self.tree.delete(selected)
+                messagebox.showinfo("Thành công", "Xóa sinh viên thành công")
+            else:
+                messagebox.showerror("Lỗi", response["message"])
 
 class StudentCreate(Frame):
     def __init__(self, parent, controller):

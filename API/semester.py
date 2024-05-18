@@ -38,7 +38,7 @@ def updateSemester(id, data):
 
 
 def deleteSemester(id):
-    url = f"{API_URL}/semester/{id}"
+    url = f"{API_URL}/semester/delete/{id}"
     token = localStorage.getItem("token")
     headers = {
         "Content-Type": "application/json",
