@@ -63,7 +63,7 @@ class Schedule(Frame):
         else:
             messagebox.showerror("Error", response["message"])
 
-    def editSchedule(self, event, scheduleAPI=scheduleAPI, subjectAPI=subjectAPI, majorAPI=majorAPI, teacherAPI=teacherAPI, semesterAPI=semesterAPI):
+    def editSchedule(self, event, scheduleAPI=scheduleAPI, subjectAPI=subjectAPI, semesterAPI=semesterAPI, majorAPI=majorAPI, teacherAPI=teacherAPI):
         def handleUpdateSchedule(id, data):
             response = scheduleAPI.updateSchedule(id, data)
 
@@ -76,18 +76,19 @@ class Schedule(Frame):
 
         root = Toplevel()
         root.title("Chỉnh sửa lịch học")
-        root.geometry("500x500")
 
         id = event.widget.item(event.widget.selection()[0])["text"]
         schedule = event.widget.item(event.widget.selection()[0])["values"]
 
         subjectsList = subjectAPI.getAllSubjects()["data"] if "success" in subjectAPI.getAllSubjects() and subjectAPI.getAllSubjects()["success"] else []
 
-        semestersList = semesterAPI.getAllSemesters()["data"] if "success" in semesterAPI.getAllSemesters() and semesterAPI.getAllSemesters()["success"] else []
-
         majorsList = majorAPI.getAllMajors()["data"] if "success" in majorAPI.getAllMajors() and majorAPI.getAllMajors()["success"] else []
 
         teachersList = teacherAPI.getAllTeachers()["data"] if "success" in teacherAPI.getAllTeachers() and teacherAPI.getAllTeachers()["success"] else []
+
+        Label(root, text="Chuyên ngành").grid(row=0, column=2)
+        major = Combobox(root, values=[major["majorName"] for major in majorsList])
+        major.grid(row=0, column=3)
 
         Label(root, text="Tên môn học").grid(row=0, column=0)
         subject = Combobox(root, values=[subject["subjectName"] for subject in subjectsList])
@@ -125,6 +126,7 @@ class Schedule(Frame):
         teacher.grid(row=6, column=1, padx=5, pady=10)
 
         Button(root, text="Cập nhật", command=lambda: handleUpdateSchedule(id, {
+            "major": majorsList[major.current()],
             "subject": subjectsList[subject.current()],
             "className": class_.get(),
             "room": room.get(),

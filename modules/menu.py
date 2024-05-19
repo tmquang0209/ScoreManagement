@@ -30,6 +30,10 @@ class MenuManager:
         self.controller.screens["Major"].initData()
         self.controller.showFrame("Major")
 
+    def handleOpenStaffs(self):
+        self.controller.screens["Employee"].initData()
+        self.controller.showFrame("Employee")
+
     def handleOpenTeachers(self):
         self.controller.screens["Teacher"].initData()
         self.controller.showFrame("Teacher")
@@ -81,8 +85,8 @@ class MenuManager:
             menu.add_cascade(label="Ngành học", menu=majorMenu)
 
             employeeMenu = Menu(menu, tearoff=0)
-            employeeMenu.add_command(label="Danh sách nhân viên")
-            employeeMenu.add_command(label="Thêm nhân viên mới")
+            employeeMenu.add_command(label="Danh sách nhân viên", command=self.handleOpenStaffs)
+            employeeMenu.add_command(label="Thêm nhân viên mới", command=lambda: self.controller.showFrame("EmployeeCreate"))
 
             menu.add_cascade(label="Nhân viên", menu=employeeMenu)
 
