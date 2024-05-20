@@ -41,6 +41,7 @@ class ScoreApp(Tk):
         self.container.grid_columnconfigure(0, minsize=600, weight=2)
 
         self.screens = {}
+        
         for F in (Home, Login, Years, YearCreate, PersonalInfo, ChangePassword, Subjects, SubjectCreate, Department, DepartmentCreate, Major, MajorCreate, Teacher, TeacherCreate, Student, StudentCreate, Semester, SemesterCreate, Schedule, ScheduleCreate, Employee, EmployeeCreate):
             pageName = F.__name__
 
@@ -88,6 +89,17 @@ class ScoreApp(Tk):
             return "Login"
 
     def showFrame(self, pageName):
+        if pageName not in self.screens:
+            frame = globals()[pageName](parent=self.container, controller=self)
+            self.screens[pageName] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+
+            if pageName == "PersonalInfo":
+                frame.preparePersonalInfo()
+
+        for frame in self.screens.values():
+            frame.tkraise()
+
         self.screens[pageName].tkraise()
 
 # Run the application

@@ -219,7 +219,7 @@ class EmployeeCreate(Frame):
         roles_response = roleAPI.getAllRoles()
         roles = roles_response["data"] if roles_response["success"] else []
         departments_response = departmentAPI.getDepartments()
-        departments = departments_response["data"] if departments_response["success"] else []
+        departments = departments_response["data"] if "success" in departments_response and departments_response["success"] else []
 
         Label(formController, text="Chức vụ").grid(row=7, column=0, padx=5, pady=10)
         self.role = Combobox(formController, values=[role["name"] for role in roles])
@@ -248,6 +248,7 @@ class EmployeeCreate(Frame):
             "phone": phone,
             "email": email,
             "address": address,
+            "password": dob.replace("-", ""),
             "dob": dob,
             "gender": gender,
             "role": role,

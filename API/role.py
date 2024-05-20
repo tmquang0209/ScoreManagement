@@ -7,6 +7,9 @@ from API.url import API_URL
 def getAllRoles():
     url = API_URL + "/role/all"
     token = localStorage.getItem("token")
+    if not token:
+        return []
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token
