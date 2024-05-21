@@ -14,6 +14,17 @@ def getAllSemesters():
     semesters = response.json()
     return semesters
 
+def getSemesterByYear(id):
+    url = f"{API_URL}/semester/year/{id}"
+    token = localStorage.getItem("token")
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.get(url, headers=headers)
+    semester = response.json()
+    return semester
+
 def createSemester(data):
     url = f"{API_URL}/semester/create"
     token = localStorage.getItem("token")
