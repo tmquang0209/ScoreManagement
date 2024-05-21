@@ -17,6 +17,7 @@ from screens.teacher import Teacher, TeacherCreate
 from screens.student import Student, StudentCreate
 from screens.semester import Semester, SemesterCreate
 from screens.schedule import Schedule, ScheduleCreate
+from screens.enrollment import Enrollment, EnrollmentRecords
 
 from API.user import verifyToken, getPersonalInfo
 
@@ -41,15 +42,19 @@ class ScoreApp(Tk):
         self.container.grid_columnconfigure(0, minsize=600, weight=2)
 
         self.screens = {}
-        
-        for F in (Home, Login, Years, YearCreate, PersonalInfo, ChangePassword, Subjects, SubjectCreate, Department, DepartmentCreate, Major, MajorCreate, Teacher, TeacherCreate, Student, StudentCreate, Semester, SemesterCreate, Schedule, ScheduleCreate, Employee, EmployeeCreate):
+
+        for F in (Home, Login, Years, YearCreate, PersonalInfo, ChangePassword, Subjects, SubjectCreate, Department, DepartmentCreate, Major, MajorCreate, Teacher, TeacherCreate, Student, StudentCreate, Semester, SemesterCreate, Schedule, ScheduleCreate, Employee, EmployeeCreate, Enrollment, EnrollmentRecords):
             pageName = F.__name__
 
-            frame = F(parent=self.container, controller=self)
+            # if __init__ method has scheduleId parameter
+            if pageName == "EnrollmentRecords":
+                frame = F(parent=self.container, controller=self, scheduleId=None)
+            else:
+                frame = F(parent=self.container, controller=self)
             self.screens[pageName] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.screens["PersonalInfo"].preparePersonalInfo()
+        # self.screens["PersonalInfo"].preparePersonalInfo()
 
         self.showFrame(self.currentScreen)
         self.displayMenu()
@@ -88,14 +93,17 @@ class ScoreApp(Tk):
         else:
             return "Login"
 
-    def showFrame(self, pageName):
+    def showFrame(self, pageName, scheduleId = None):
         if pageName not in self.screens:
-            frame = globals()[pageName](parent=self.container, controller=self)
+            if scheduleId:
+                frame = globals()[pageName](parent=self.container, controller=self, scheduleId=scheduleId)
+            else:
+                frame = globals()[pageName](parent=self.container, controller=self)
             self.screens[pageName] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-            if pageName == "PersonalInfo":
-                frame.preparePersonalInfo()
+            # if pageName == "PersonalInfo":
+            #     frame.preparePersonalInfo()
 
         for frame in self.screens.values():
             frame.tkraise()
