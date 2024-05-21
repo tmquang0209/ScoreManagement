@@ -217,7 +217,7 @@ class EmployeeCreate(Frame):
         self.gender.grid(row=6, column=1, padx=5, pady=10)
 
         roles_response = roleAPI.getAllRoles()
-        roles = roles_response["data"] if roles_response["success"] else []
+        roles = roles_response["data"] if "success" in roles_response and roles_response["success"] else []
         departments_response = departmentAPI.getDepartments()
         departments = departments_response["data"] if "success" in departments_response and departments_response["success"] else []
 
