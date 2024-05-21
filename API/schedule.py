@@ -14,6 +14,17 @@ def getAllSchedules():
     response = requests.get(url, headers=headers)
     return response.json()
 
+def searchSchedules(data):
+    url = API_URL + "/schedule/search"
+    token = localStorage.getItem("token")
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+
 def getScheduleById(id):
     url = API_URL + "/schedule/details/" + id
     token = localStorage.getItem("token")

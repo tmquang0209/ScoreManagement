@@ -11,9 +11,44 @@ class Schedule(Frame):
 
         self.initUI()
 
+    def onYearChange(self, event):
+        # get year
+        year = self.yearsList[self.year.current()]
+
+        # get semesters of year
+        self.semesters = semesterAPI.getSemesterByYear(year["id"])["data"] if "success" in semesterAPI.getSemesterByYear(year["id"]) and semesterAPI.getSemesterByYear(year["id"])["success"] else []
+
+        # set values for semester combobox
+        self.semester.set("")
+        self.semester["values"] = [semester["semester"] for semester in self.semesters]
+
     def initUI(self):
         self.scheduleLabel = Label(self, text="Quản lý lịch học", font=("Helvetica", 18))
         self.scheduleLabel.pack(side="top", fill="x", pady=10, padx=10)
+
+        # year selection
+        formFrame = Frame(self)
+        formFrame.pack(pady=10)
+
+        self.semesters = []
+
+        self.yearsList = yearAPI.getAllYears()["data"] if "success" in yearAPI.getAllYears() and yearAPI.getAllYears()["success"] else []
+        Label(formFrame, text="Chọn năm học").grid(row=0, column=0, padx=5, pady=10)
+        self.year = Combobox(formFrame, values=[year["year"] for year in self.yearsList])
+        self.year.grid(row=0, column=1, padx=5, pady=10)
+        self.year.bind("<<ComboboxSelected>>", self.onYearChange)
+
+        # semester selection
+        Label(formFrame, text="Chọn kỳ học").grid(row=0, column=3, padx=5, pady=10)
+        self.semester = Combobox(formFrame, values=[])
+        self.semester.grid(row=0, column=4, padx=5, pady=10)
+
+        # class name search
+        Label(formFrame, text="Tên lớp").grid(row=0, column=6, padx=5, pady=10)
+        self.className = Entry(formFrame)
+        self.className.grid(row=0, column=7, padx=5, pady=10)
+
+        Button(formFrame, text="Tìm kiếm", command=self.handleSearch).grid(row=0, column=8, padx=5, pady=10)
 
         self.columns = ("#1", "#2", "#3", "#4", "#5", "#6", "#7", "#8")
         self.tree = Treeview(self, columns=self.columns, show="headings")
@@ -49,19 +84,37 @@ class Schedule(Frame):
     def insertItemToTree(self, schedule):
         self.tree.insert("", "end", text=schedule["id"], values=(schedule["subject"]["subjectName"], schedule["className"], schedule["room"], schedule["day"], schedule["shift"], schedule["maxStudent"], schedule["currentStudent"], schedule["teacher"]["name"]))
 
-    def initData(self):
-        # clear tree
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-
-        response = scheduleAPI.getAllSchedules()
+    def handleSearch(self):
+        semesterId = self.semesters[self.semester.current()]["id"] if self.semester.get() else None
+        response = scheduleAPI.searchSchedules({
+            "semesterId": semesterId,
+            "className": self.className.get()
+        })
 
         if "success" in response and response["success"]:
+            for i in self.tree.get_children():
+                self.tree.delete(i)
+
             self.scheduleList = response["data"]
             for schedule in self.scheduleList:
                 self.insertItemToTree(schedule)
         else:
             messagebox.showerror("Error", response["message"])
+
+    def initData(self):
+        # clear tree
+        if hasattr(self, "tree"):
+            for i in self.tree.get_children():
+                self.tree.delete(i)
+
+            response = scheduleAPI.getAllSchedules()
+
+            if "success" in response and response["success"]:
+                self.scheduleList = response["data"]
+                for schedule in self.scheduleList:
+                    self.insertItemToTree(schedule)
+            else:
+                messagebox.showerror("Error", response["message"])
 
     def editSchedule(self, event, scheduleAPI=scheduleAPI, subjectAPI=subjectAPI, semesterAPI=semesterAPI, majorAPI=majorAPI, teacherAPI=teacherAPI):
         def handleUpdateSchedule(id, data):
