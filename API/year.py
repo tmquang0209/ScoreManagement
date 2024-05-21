@@ -8,6 +8,11 @@ def getAllYears():
     response = requests.get(url)
     return response.json()
 
+def getYearAndSemester():
+    url = API_URL + "/yearAndSemester"
+    response = requests.get(url)
+    return response.json()
+
 def createYear(year, tuition):
     url = API_URL + "/year/create"
     token = localStorage.getItem("token")
