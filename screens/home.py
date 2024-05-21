@@ -16,9 +16,6 @@ class Home(Frame):
         self.welcomeLabel = Label(self, text="Welcome, " + self.userName, font=("Helvetica", 18))
         self.welcomeLabel.pack(side="top", fill="x", pady=10)
         self.prepareHome()
-        # Create year button
-        createYearButton = ttk.Button(self, text="Create Year", command=lambda: self.controller.showFrame("Years"))
-        createYearButton.pack()
 
         # Logout button
         logoutButton = ttk.Button(self, text="Logout", command=self.logout)
