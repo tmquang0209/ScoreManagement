@@ -58,6 +58,10 @@ class MenuManager:
         # self.controller.screens["Enrollment"].initData()
         self.controller.showFrame("Enrollment")
 
+    def handleOpenScore(self):
+        self.controller.screens["Score"].initData()
+        self.controller.showFrame("Score")
+
     def createMenu(self):
         personalInfo = self.localStorage.getItem("user")
         personalInfo = json.loads(personalInfo) if personalInfo else {}
@@ -70,7 +74,9 @@ class MenuManager:
         accountMenu.add_command(label="Đăng xuất", command=self.logout)
         menu.add_cascade(label="Tài khoản", menu=accountMenu)
 
-        roleName = personalInfo["role"]["name"] if "role" in personalInfo else None
+        roleName = personalInfo["role"]["name"] if "role" in personalInfo and "name" in personalInfo["role"] else None
+
+        print(personalInfo)
 
         department = personalInfo["department"]["name"] if "department" in personalInfo and personalInfo["department"] else None
 
@@ -102,39 +108,43 @@ class MenuManager:
             teacherMenu.add_command(label="Thêm giảng viên mới", command=lambda: self.controller.showFrame("TeacherCreate"))
             menu.add_cascade(label="Giảng viên", menu=teacherMenu)
 
-        if roleName == "ADMIN" or department == "Phòng đào tạo":
-            studentMenu = Menu(menu, tearoff=0)
-            studentMenu.add_command(label="Danh sách sinh viên", command=self.handleOpenStudents)
-            studentMenu.add_command(label="Thêm sinh viên mới", command=lambda: self.controller.showFrame("StudentCreate"))
-            menu.add_cascade(label="Sinh viên", menu=studentMenu)
+        if roleName == "ADMIN" or department == "Phòng đào tạo" or "teacherCode" in personalInfo or roleName == "TEACHER":
+            if roleName == "ADMIN" or department == "Phòng đào tạo":
+                studentMenu = Menu(menu, tearoff=0)
+                studentMenu.add_command(label="Danh sách sinh viên", command=self.handleOpenStudents)
+                studentMenu.add_command(label="Thêm sinh viên mới", command=lambda: self.controller.showFrame("StudentCreate"))
+                menu.add_cascade(label="Sinh viên", menu=studentMenu)
 
             yearMenu = Menu(menu, tearoff=0)
 
-            subYearMenu = Menu(yearMenu, tearoff=0)
-            subYearMenu.add_command(label="Danh sách năm học", command=lambda: self.controller.showFrame("Years"))
-            subYearMenu.add_command(label="Thêm năm học mới", command=lambda: self.controller.showFrame("YearCreate"))
-            yearMenu.add_cascade(label="Năm học", menu=subYearMenu)
+            if roleName == "ADMIN" or department == "Phòng đào tạo":
+                subYearMenu = Menu(yearMenu, tearoff=0)
+                subYearMenu.add_command(label="Danh sách năm học", command=lambda: self.controller.showFrame("Years"))
+                subYearMenu.add_command(label="Thêm năm học mới", command=lambda: self.controller.showFrame("YearCreate"))
+                yearMenu.add_cascade(label="Năm học", menu=subYearMenu)
 
-            subSemesterMenu = Menu(yearMenu, tearoff=0)
-            subSemesterMenu.add_command(label="Danh sách học kỳ", command=self.handleOpenSemesters)
-            subSemesterMenu.add_command(label="Thêm học kỳ mới", command=self.handleOpenSemesterCreate)
-            yearMenu.add_cascade(label="Học kỳ", menu=subSemesterMenu)
+                subSemesterMenu = Menu(yearMenu, tearoff=0)
+                subSemesterMenu.add_command(label="Danh sách học kỳ", command=self.handleOpenSemesters)
+                subSemesterMenu.add_command(label="Thêm học kỳ mới", command=self.handleOpenSemesterCreate)
+                yearMenu.add_cascade(label="Học kỳ", menu=subSemesterMenu)
 
-            scheduleMenu = Menu(menu, tearoff=0)
-            scheduleMenu.add_command(label="Danh sách lịch học", command=self.handleOpenSchedule)
-            scheduleMenu.add_command(label="Thêm lịch học mới", command=lambda: self.controller.showFrame("ScheduleCreate"))
-            yearMenu.add_cascade(label="Lịch học", menu=scheduleMenu)
+                scheduleMenu = Menu(menu, tearoff=0)
+                scheduleMenu.add_command(label="Danh sách lịch học", command=self.handleOpenSchedule)
+                scheduleMenu.add_command(label="Thêm lịch học mới", command=lambda: self.controller.showFrame("ScheduleCreate"))
+                yearMenu.add_cascade(label="Lịch học", menu=scheduleMenu)
 
-            enrollmentMenu = Menu(menu, tearoff=0)
-            enrollmentMenu.add_command(label="Danh sách đăng ký", command=self.handleOpenEnrollment)
-            yearMenu.add_cascade(label="Đăng ký", menu=enrollmentMenu)
+            if "teacherCode" in personalInfo or roleName == "ADMIN" or department == "Phòng đào tạo":
+                enrollmentMenu = Menu(menu, tearoff=0)
+                enrollmentMenu.add_command(label="Danh sách đăng ký", command=self.handleOpenEnrollment)
+                yearMenu.add_cascade(label="Đăng ký", menu=enrollmentMenu)
 
             menu.add_cascade(label="Năm học", menu=yearMenu)
-
-        if roleName == "TEACHER" or roleName == "ADMIN" or department == "Phòng đào tạo":
+        print("teacherCode" in personalInfo)
+        if roleName == "TEACHER" or "teacherCode" in personalInfo or roleName == "ADMIN" or department == "Phòng đào tạo":
             scoreMenu = Menu(menu, tearoff=0)
             scoreMenu.add_command(label="Nhập điểm", command=lambda: self.controller.showFrame("ScoreCreate"))
-            scoreMenu.add_command(label="Danh sách điểm", command=lambda: self.controller.showFrame("Scores"))
+            scoreMenu.add_command(label="Danh sách điểm", command=self.handleOpenScore)
+            menu.add_cascade(label="Điểm", menu=scoreMenu)
 
         return menu
 

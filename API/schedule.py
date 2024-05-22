@@ -25,8 +25,20 @@ def searchSchedules(data):
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
+def getScheduleForTeacher(data):
+    url = API_URL + "/schedule/getByTeacher"
+    token = localStorage.getItem("token")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+
 def getScheduleById(id):
-    url = API_URL + "/schedule/details/" + id
+    url = API_URL + "/schedule/details/" + str(id)
     token = localStorage.getItem("token")
     headers = {
         "Content-Type": "application/json",

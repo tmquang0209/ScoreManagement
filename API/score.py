@@ -3,7 +3,7 @@ from API.url import API_URL
 from modules import localStorage
 
 def getScores(semesterId):
-    url = API_URL + "/scores"
+    url = API_URL + "/score"
     token = localStorage.getItem("token")
 
     headers = {
@@ -19,7 +19,7 @@ def getScores(semesterId):
     return response.json()
 
 def getByStudentId(studentId):
-    url = API_URL + "/scores/student/" + studentId
+    url = API_URL + "/score/student/" + studentId
     token = localStorage.getItem("token")
 
     headers = {
@@ -32,7 +32,7 @@ def getByStudentId(studentId):
     return response.json()
 
 def search(semesterId, subjectId, studentId = None):
-    url = API_URL + "/scores/search"
+    url = API_URL + "/score/search"
     token = localStorage.getItem("token")
 
     headers = {
@@ -51,7 +51,7 @@ def search(semesterId, subjectId, studentId = None):
     return response.json()
 
 def update(scoreId, midTerm = None, final = None):
-    url = API_URL + "/scores"
+    url = API_URL + "/score"
     token = localStorage.getItem("token")
 
     headers = {
@@ -66,5 +66,18 @@ def update(scoreId, midTerm = None, final = None):
     }
 
     response = requests.put(url, headers=headers, json=data)
+
+    return response.json()
+
+def create(semesterId, subjectId, data):
+    url = API_URL + "/score/create/" + str(semesterId) + "/" + str(subjectId)
+    token = localStorage.getItem("token")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    response = requests.post(url, headers=headers, json=data)
 
     return response.json()
