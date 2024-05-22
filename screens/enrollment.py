@@ -167,11 +167,13 @@ class EnrollmentRecords(Frame):
 
     def deleteRecord(self, event):
         item = event.widget.selection()[0]
-        enrollmentId = self.tree.item(item, "text")
-        print("enrollment id", enrollmentId)
+        studentId = self.tree.item(item, "text")
+        studentCode = self.tree.item(item, "values")[0]
+        print("enrollment id", studentId, self.scheduleId)
 
-        if messagebox.askyesno("Xác nhận", f"Xác nhận xóa bản ghi {enrollmentId}"):
-            response = enrollmentAPI.deleteEnrollment(enrollmentId)
+        if messagebox.askyesno("Xác nhận", f"Xác nhận xóa sinh viên {studentCode} khỏi lớp"):
+            response = enrollmentAPI.deleteEnrollment(studentId, self.scheduleId)
+            
             if response["success"]:
                 self.tree.delete(item)
             else:

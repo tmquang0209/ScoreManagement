@@ -37,8 +37,8 @@ def addEnrollment(scheduleId, studentId):
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
-def deleteEnrollment(enrollmentId):
-    url = API_URL + "/enrollment/delete/" + str(enrollmentId)
+def deleteEnrollment(studentId, scheduleId):
+    url = API_URL + "/enrollment/delete/" + str(scheduleId) + "/" + str(studentId)
     token = localStorage.getItem("token")
 
     headers = {
