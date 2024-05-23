@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
 
-from API import year as yearAPI, semester as semesterAPI, subject as subjectAPI, schedule as scheduleAPI, score as scoreAPI, enrollment as enrollmentAPI
+from API import year as yearAPI, semester as semesterAPI, subject as subjectAPI, schedule as scheduleAPI, score as scoreAPI, enrollment as enrollmentAPI, student as studentAPI
 
 class Score(Frame):
     def __init__(self, parent, controller):
@@ -64,8 +64,8 @@ class Score(Frame):
     def handleDoubleClick(self, event):
         item = self.tree.selection()[0]
         scheduleId = self.tree.item(item, "text")
-        self.controller.screens["ScoreCreate"].initData(scheduleId)
-        self.controller.showFrame("ScoreCreate", scheduleId)
+        self.controller.screens["ScoreDetail"].initData(scheduleId)
+        self.controller.showFrame("ScoreDetail", scheduleId)
 
     def insertData(self, schedules):
         self.tree.delete(*self.tree.get_children())
@@ -120,6 +120,109 @@ class Score(Frame):
         schedules = scheduleAPI.getScheduleForTeacher(searchData)["data"] if "data" in scheduleAPI.getScheduleForTeacher(searchData) else []
 
         self.insertData(schedules)
+
+class ScoreDetail(Frame):
+    def __init__(self, parent, controller, scheduleId):
+        super().__init__(parent)
+        self.controller = controller
+        self.scheduleId = scheduleId
+
+        self.initUI()
+
+    def initUI(self):
+        def handleOpenCreateScore():
+            self.controller.screens["ScoreCreate"].initData(self.scheduleId)
+            self.controller.showFrame("ScoreCreate", self.scheduleId)
+        Button(self, text="Nhập điểm", command=handleOpenCreateScore).pack(padx=5, pady=5)
+
+        columns = ("#1", "#2", "#3", "#4", "#5")
+        self.tree = Treeview(self, columns=columns, show="headings")
+
+        self.tree.pack()
+
+        self.tree.column("#1", width=100, anchor=CENTER)
+        self.tree.heading("#1", text="Mã sinh viên")
+
+        self.tree.column("#2", width=150, anchor=CENTER)
+        self.tree.heading("#2", text="Tên sinh viên")
+
+        self.tree.column("#3", width=100, anchor=CENTER)
+        self.tree.heading("#3", text="Điểm giữa kỳ")
+
+        self.tree.column("#4", width=100, anchor=CENTER)
+        self.tree.heading("#4", text="Điểm cuối kỳ")
+
+        self.tree.column("#5", width=100, anchor=CENTER)
+        self.tree.heading("#5", text="Điểm trung bình")
+
+        self.tree.bind("<Double-1>", self.editScore)
+
+    def insertData(self, scores):
+        self.tree.delete(*self.tree.get_children())
+        for score in scores:
+            self.tree.insert("", "end", values=(
+                score["studentCode"],
+                score["studentName"],
+                score["midtermScore"],
+                score["finalScore"],
+                score["score"]
+            ))
+
+    def initData(self, scheduleId):
+        self.scheduleId = scheduleId
+        scores = scoreAPI.getByScheduleId(scheduleId)["data"] if "data" in scoreAPI.getByScheduleId(scheduleId) else []
+        self.insertData(scores)
+
+    def editScore(self, event):
+        def handleSave(midtermScore, finalScore, studentCode):
+            data = {
+                "studentCode": studentCode,
+                "midtermTest": midtermScore,
+                "finalTest": finalScore
+            }
+
+            response = scoreAPI.update(self.scheduleId, data)
+
+            if response["success"]:
+                messagebox.showinfo("Thành công", response["message"])
+            else:
+                messagebox.showerror("Lỗi", response["message"])
+
+            root.destroy()
+
+            self.controller.screens["ScoreDetail"].initData(self.scheduleId)
+
+        item = self.tree.selection()[0]
+        studentCode = self.tree.item(item, "values")[0]
+
+        studentId = studentAPI.getStudentByCode(studentCode)["data"][0]["id"] if "data" in studentAPI.getStudentByCode(studentCode) else ""
+
+        score = scoreAPI.getByStudentIdAndScheduleId(self.scheduleId, studentId)["data"][0] if "data" in scoreAPI.getByStudentIdAndScheduleId(self.scheduleId, studentId) else ""
+
+        root = Toplevel(self)
+        root.title("Chỉnh sửa điểm")
+
+        Label(root, text="Mã sinh viên").grid(row=0, column=0, padx=5, pady=5)
+        Label(root, text=studentCode).grid(row=0, column=1, padx=5, pady=5)
+
+        Label(root, text="Tên sinh viên").grid(row=1, column=0, padx=5, pady=5)
+        Label(root, text=score["studentName"]).grid(row=1, column=1, padx=5, pady=5)
+
+        Label(root, text="Điểm giữa kỳ").grid(row=2, column=0, padx=5, pady=5)
+        midtermScore = Entry(root)
+        midtermScore.insert(0, score["midtermScore"])
+        midtermScore.grid(row=2, column=1, padx=5, pady=5)
+
+        Label(root, text="Điểm cuối kỳ").grid(row=3, column=0, padx=5, pady=5)
+        finalScore = Entry(root)
+        finalScore.insert(0, score["finalScore"])
+        finalScore.grid(row=3, column=1, padx=5, pady=5)
+
+        Button(root, text="Lưu", command=lambda: handleSave(
+            midtermScore.get(),
+            finalScore.get(),
+            studentCode
+        )).grid(row=4, column=1, padx=5, pady=5)
 
 class ScoreCreate(Frame):
     def __init__(self, parent, controller, scheduleId):
