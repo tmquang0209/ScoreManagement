@@ -204,7 +204,20 @@ class ScheduleCreate(Frame):
         super().__init__(parent)
         self.controller = controller
 
+        self.yearsList = []
+        self.semesters = []
+
         self.initUI()
+
+    def onYearChange(self, event):
+        year = self.yearsList[self.year.current()]
+
+        self.semesters = semesterAPI.getSemesterByYear(year["id"])["data"] if "success" in semesterAPI.getSemesterByYear(year["id"]) and semesterAPI.getSemesterByYear(year["id"])["success"] else []
+
+        print(self.semesters)
+
+        self.semester.set("")
+        self.semester["values"] = [semester["semester"] for semester in self.semesters]
 
     def initUI(self):
         self.scheduleLabel = Label(self, text="Thêm lịch học mới", font=("Helvetica", 18))
@@ -212,14 +225,20 @@ class ScheduleCreate(Frame):
 
         subjectsList = subjectAPI.getAllSubjects()["data"] if "success" in subjectAPI.getAllSubjects() and subjectAPI.getAllSubjects()["success"] else []
 
-        semestersList = semesterAPI.getAllSemesters()["data"] if "success" in semesterAPI.getAllSemesters() and semesterAPI.getAllSemesters()["success"] else []
+        self.yearsList = yearAPI.getAllYears()["data"] if "success" in yearAPI.getAllYears() and yearAPI.getAllYears()["success"] else []
 
         majorsList = majorAPI.getAllMajors()["data"] if "success" in majorAPI.getAllMajors() and majorAPI.getAllMajors()["success"] else []
 
         teachersList = teacherAPI.getAllTeachers()["data"] if "success" in teacherAPI.getAllTeachers() and teacherAPI.getAllTeachers()["success"] else []
 
+        Label(self, text="Năm học").pack()
+        self.year = Combobox(self, values=[year["year"] for year in self.yearsList])
+        self.year.pack()
+
+        self.year.bind("<<ComboboxSelected>>", self.onYearChange)
+
         Label(self, text="Kỳ học").pack()
-        self.semester = Combobox(self, values=[semester["semester"] for semester in semestersList])
+        self.semester = Combobox(self)
         self.semester.pack()
 
         Label(self, text="Chuyên ngành").pack()
@@ -255,7 +274,7 @@ class ScheduleCreate(Frame):
         self.teacher.pack()
 
         Button(self, text="Thêm", command=lambda: self.handleCreateSchedule(
-                                                                    semestersList[self.semester.current()],
+                                                                    self.semesters[self.semester.current()],
                                                                     majorsList[self.major.current()],
                                                                     subjectsList[self.subject.current()],
                                                                     self.class_.get(),
@@ -266,6 +285,7 @@ class ScheduleCreate(Frame):
                                                                     teachersList[self.teacher.current()])).pack()
 
     def handleCreateSchedule(self, semester, major, subject, class_, room, day, shift, maxStudent, teacher):
+        print(semester)
         response = scheduleAPI.createSchedule({
             "semester": semester,
             "major": major,
