@@ -141,10 +141,7 @@ class MenuManager:
             menu.add_cascade(label="Năm học", menu=yearMenu)
         print("teacherCode" in personalInfo)
         if roleName == "TEACHER" or "teacherCode" in personalInfo or roleName == "ADMIN" or department == "Phòng đào tạo":
-            scoreMenu = Menu(menu, tearoff=0)
-            scoreMenu.add_command(label="Nhập điểm", command=lambda: self.controller.showFrame("ScoreCreate"))
-            scoreMenu.add_command(label="Danh sách điểm", command=self.handleOpenScore)
-            menu.add_cascade(label="Điểm", menu=scoreMenu)
+            menu.add_command(label="Điểm số", command=self.handleOpenScore)
 
         return menu
 
