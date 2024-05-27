@@ -14,6 +14,18 @@ def getAllSubjects():
     response = requests.get(url, headers=headers)
     return response.json()
 
+def search(keyword):
+    url = API_URL + "/subject/search/" + keyword
+    token = localStorage.getItem("token")
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+
 def getSubjectById(subjectId):
     url = API_URL + f"/subject/details/{str(subjectId)}"
     token = localStorage.getItem("token")

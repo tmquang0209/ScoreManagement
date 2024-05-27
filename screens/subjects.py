@@ -17,8 +17,16 @@ class Subjects(Frame):
         self.subjectLabel.pack(side="top", fill="x", pady=10, padx=10)
 
         # search bar
-        self.searchBar = Entry(self)
-        self.searchBar.pack(pady=10)
+        form = Frame(self)
+        form.pack(pady=10)
+
+        Label(form, text="Tìm kiếm:").pack(side=LEFT)
+
+        self.searchBar = Entry(form)
+        self.searchBar.pack(side=LEFT, padx=10)
+
+        searchButton = Button(form, text="Tìm kiếm", command=self.handleSearch)
+        searchButton.pack(side=LEFT)
 
         # tree view
         self.columns = ("#1", "#2", "#3", "#4")
@@ -33,6 +41,18 @@ class Subjects(Frame):
         self.tree.bind("<Double-1>", self.editSubject)
         self.tree.bind("<Delete>", self.handleDeleteSubject)
         self.tree.pack(padx=10)
+
+    def handleSearch(self):
+        keyword = self.searchBar.get()
+        response = subject.search(keyword)
+        if "success" in response and response["success"]:
+            for item in self.tree.get_children():
+                self.tree.delete(item)
+
+            for val in response["data"]:
+                self.insertItemToTree(val)
+        else:
+            messagebox.showerror("Error", response["message"])
 
     def initData(self):
         # remove all items in tree
@@ -122,7 +142,6 @@ class Subjects(Frame):
             "rate": rateEntry.get()
         }))
         updateButton.grid(row=4, column=0, columnspan=2, pady=10)
-
 
     def handleDeleteSubject(self, event):
         for selectedItem in self.tree.selection():
