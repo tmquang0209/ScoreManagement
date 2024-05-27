@@ -61,6 +61,7 @@ class Score(Frame):
         self.tree.heading("#7", text="Sỹ số")
 
         self.tree.bind("<Double-1>", self.handleDoubleClick)
+        
     def handleDoubleClick(self, event):
         item = self.tree.selection()[0]
         scheduleId = self.tree.item(item, "text")

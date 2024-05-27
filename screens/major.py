@@ -17,8 +17,8 @@ class Major(Frame):
         self.majorLabel.pack(side="top", fill="x", pady=10, padx=10)
 
         # search bar
-        self.searchBar = Entry(self)
-        self.searchBar.pack(pady=10)
+        # self.searchBar = Entry(self)
+        # self.searchBar.pack(pady=10)
 
         # tree view
         self.columns = ("#1", "#2")

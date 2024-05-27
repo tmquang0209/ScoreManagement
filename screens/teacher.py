@@ -59,10 +59,18 @@ class Teacher(Frame):
 
     def handleUpdateTeacherTree(self, id, data):
         for selectedItem in self.tree.selection():
-            self.tree.item(selectedItem, text=id, values=(data["teacherCode"], data["name"], data["dob"], data["gender"], data["major"]["majorName"] if data["major"] != None else "", data["email"], data["phone"], data["address"]))
+            self.tree.item(selectedItem,
+                           text=id,
+                           values=(data["teacherCode"], data["name"],
+                                   data["dob"], data["gender"],
+                                   data["major"]["majorName"] if data["major"] != None else "", data["email"], data["phone"], data["address"]))
 
     def insertItemToTree(self, teacher):
-        self.tree.insert("", "end", text=teacher["id"], values=(teacher["teacherCode"], teacher["name"], teacher["dob"], teacher["gender"], teacher["major"]["majorName"] if teacher["major"] != None else "", teacher["email"], teacher["phone"], teacher["address"]))
+        self.tree.insert("", "end",
+                         text=teacher["id"],
+                         values=(teacher["teacherCode"], teacher["name"],
+                                 teacher["dob"], teacher["gender"],
+                                 teacher["major"]["majorName"] if teacher["major"] != None else "", teacher["email"], teacher["phone"], teacher["address"]))
 
     def handleEditTeacher(self, root, id, data):
         response = teacher.updateTeacher(id, data)

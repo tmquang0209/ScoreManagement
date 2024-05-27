@@ -48,11 +48,23 @@ class Student(Frame):
         self.tree.bind("<Delete>", self.deleteStudent)
 
     def handleInsertStudentTree(self, student):
-        self.tree.insert("", "end", text=student["id"], values=(student["studentCode"], student["name"], student["email"], student["phone"], student["address"], student["dob"], student["gender"], student["major"]["majorName"] if student["major"] else ""))
+        self.tree.insert("", "end",
+                         text=student["id"],
+                         values=(student["studentCode"], student["name"],
+                                 student["email"], student["phone"],
+                                 student["address"], student["dob"],
+                                 student["gender"],
+                                 student["major"]["majorName"] if student["major"] else ""))
 
     def handleUpdateStudentTree(self, student):
         selected = self.tree.selection()[0]
-        self.tree.item(selected, text=student["id"], values=(student["studentCode"], student["name"], student["email"], student["phone"], student["address"], student["dob"], student["gender"], student["major"]["majorName"] if student["major"] else ""))
+        self.tree.item(selected,
+                       text=student["id"],
+                       values=(student["studentCode"], student["name"],
+                               student["email"], student["phone"],
+                               student["address"], student["dob"],
+                               student["gender"],
+                               student["major"]["majorName"] if student["major"] else ""))
 
     def initData(self):
         response = studentAPI.getAllStudents()
@@ -139,7 +151,16 @@ class Student(Frame):
         major.insert(0, studentData[7])
         major.grid(row=7, column=1, padx=5, pady=10)
 
-        submitBtn = Button(formController, text="Cập nhật", command=lambda: self.handleEditStudent(root, studentId, studentCode.get(), name.get(), email.get(), phone.get(), address.get(), dob.get(), gender.get(), majorsList[major.current()]))
+        submitBtn = Button(formController, text="Cập nhật", command=lambda: self.handleEditStudent(root,
+                                                                                                   studentId,
+                                                                                                   studentCode.get(),
+                                                                                                   name.get(),
+                                                                                                   email.get(),
+                                                                                                   phone.get(),
+                                                                                                   address.get(),
+                                                                                                   dob.get(),
+                                                                                                   gender.get(),
+                                                                                                    majorsList[major.current()]))
         submitBtn.grid(row=8, column=1, padx=5, pady=10)
 
     def openCalendar(self, dobEntry, birthDate):
@@ -227,7 +248,11 @@ class StudentCreate(Frame):
         major = Combobox(formController, values=[major["majorName"] for major in majorsList])
         major.grid(row=7, column=1, padx=5, pady=10)
 
-        submitBtn = Button(formController, text="Thêm sinh viên", command=lambda: self.handleCreateStudent(studentCode.get(), name.get(), email.get(), phone.get(), address.get(), dob.get(), gender.get(), majorsList[major.current()]))
+        submitBtn = Button(formController, text="Thêm sinh viên",
+                           command=lambda: self.handleCreateStudent(studentCode.get(), name.get(),
+                                                                    email.get(), phone.get(),
+                                                                    address.get(), dob.get(),
+                                                                    gender.get(), majorsList[major.current()]))
         submitBtn.grid(row=8, column=1, padx=5, pady=10)
 
     def handleCreateStudent(self, studentCode, name, email, phone, address, dob, gender, major):

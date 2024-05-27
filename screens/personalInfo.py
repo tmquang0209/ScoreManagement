@@ -99,7 +99,11 @@ class PersonalInfo(Frame):
         dobButton.grid(row=6, column=2, padx=10, pady=5)
 
         # submit button
-        submitButton = Button(formContainer, text="Cập nhật", command=lambda: self.updatePersonalInfo(personalInfo["id"], emailEntry.get(), phoneEntry.get(), addressEntry.get(), dobEntry.get()))
+        submitButton = Button(formContainer, text="Cập nhật", command=lambda: self.updatePersonalInfo(personalInfo["id"],
+        emailEntry.get(),
+        phoneEntry.get(),
+        addressEntry.get(),
+        dobEntry.get()))
         submitButton.grid(row=7, column=0, columnspan=2, pady=10)
 
     def openCalendar(self, dobEntry):
@@ -125,7 +129,6 @@ class PersonalInfo(Frame):
         Button(top, text="Chọn", command=grab_date).pack(pady=10)
 
     def updatePersonalInfo(self, id, email, phone, address, dob):
-        # Here you would include the logic to update the personal information
         print(f"Updating info: Email: {email}, Phone: {phone}, Address: {address}, DOB: {dob}")
         response = user.updateInfo(id, {
             "email": email,

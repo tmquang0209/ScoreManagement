@@ -173,7 +173,7 @@ class EnrollmentRecords(Frame):
 
         if messagebox.askyesno("Xác nhận", f"Xác nhận xóa sinh viên {studentCode} khỏi lớp"):
             response = enrollmentAPI.deleteEnrollment(studentId, self.scheduleId)
-            
+
             if response["success"]:
                 self.tree.delete(item)
             else:

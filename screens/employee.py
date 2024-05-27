@@ -45,14 +45,26 @@ class Employee(Frame):
         self.tree.bind("<Double-1>", self.editEmployee)
 
         self.tree.pack(pady=20)
-        self.tree.xview_moveto(0.5)
+        # self.tree.xview_moveto(0.5)
 
     def insertToTree(self, item):
-        self.tree.insert("", "end",text=item["id"], values=(item["code"], item["name"], item["phone"], item["email"], item["address"], item["dob"], item["gender"], item["role"]["name"] if item["role"] else "", item["department"]["name"] if "department" in item and item["department"] != None else ""))
+        self.tree.insert("", "end",
+                         text=item["id"],
+                         values=(item["code"], item["name"],
+                                 item["phone"], item["email"],
+                                 item["address"], item["dob"],
+                                 item["gender"],
+                                 item["role"]["name"] if item["role"] else "", item["department"]["name"] if "department" in item and item["department"] != None else ""))
 
     def updateEmployeeInTree(self, item):
         selected = self.tree.selection()[0]
-        self.tree.insert("", "end",text=item["id"], values=(item["code"], item["name"], item["phone"], item["email"], item["address"], item["dob"], item["gender"], item["role"]["name"] if item["role"] else "", item["department"]["name"] if "department" in item and item["department"] != None else ""))
+        self.tree.insert("", "end",
+                         text=item["id"],
+                         values=(item["code"], item["name"],
+                                 item["phone"], item["email"],
+                                 item["address"], item["dob"],
+                                 item["gender"],
+                                 item["role"]["name"] if item["role"] else "", item["department"]["name"] if "department" in item and item["department"] != None else ""))
     def initData(self):
         self.tree.delete(*self.tree.get_children())
 

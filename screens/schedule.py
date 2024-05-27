@@ -79,10 +79,20 @@ class Schedule(Frame):
 
     def updateTree(self, schedule):
         self.tree.selection()[0]
-        self.tree.item(self.tree.selection()[0], text=schedule["id"], values=(schedule["subject"]["subjectName"], schedule["className"], schedule["room"], schedule["day"], schedule["shift"], schedule["maxStudent"], schedule["currentStudent"], schedule["teacher"]["name"]))
+        self.tree.item(self.tree.selection()[0],
+                       text=schedule["id"],
+                       values=(schedule["subject"]["subjectName"], schedule["className"],
+                               schedule["room"], schedule["day"],
+                               schedule["shift"], schedule["maxStudent"],
+                               schedule["currentStudent"], schedule["teacher"]["name"]))
 
     def insertItemToTree(self, schedule):
-        self.tree.insert("", "end", text=schedule["id"], values=(schedule["subject"]["subjectName"], schedule["className"], schedule["room"], schedule["day"], schedule["shift"], schedule["maxStudent"], schedule["currentStudent"], schedule["teacher"]["name"]))
+        self.tree.insert("", "end",
+                         text=schedule["id"],
+                         values=(schedule["subject"]["subjectName"], schedule["className"],
+                                 schedule["room"], schedule["day"],
+                                 schedule["shift"], schedule["maxStudent"],
+                                 schedule["currentStudent"], schedule["teacher"]["name"]))
 
     def handleSearch(self):
         semesterId = self.semesters[self.semester.current()]["id"] if self.semester.get() else None
