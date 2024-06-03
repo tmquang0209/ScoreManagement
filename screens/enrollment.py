@@ -12,7 +12,7 @@ class Enrollment(Frame):
 
     def handleYearChange(self, event, yearsList = []):
         year = yearsList[self.year.current()]["id"]
-        print(year)
+
         self.semesters = semesterAPI.getSemesterByYear(year)["data"] if "data" in semesterAPI.getSemesterByYear(year) else []
 
         self.semester.set("")

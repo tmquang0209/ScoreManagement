@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
 
-from API import subject
+from API import subject as subjectAPI
 
 class Subjects(Frame):
     def __init__(self, parent, controller):
@@ -10,25 +10,65 @@ class Subjects(Frame):
         self.controller = controller
 
         self.initUI()
+        self.initData()
 
     def initUI(self):
         # Subject label
         self.subjectLabel = Label(self, text="Quản lý môn học", font=("Helvetica", 18))
         self.subjectLabel.pack(side="top", fill="x", pady=10, padx=10)
 
-        # search bar
-        form = Frame(self)
-        form.pack(pady=10)
+        # Form for creating or editing a subject
+        self.formController = Frame(self)
+        self.formController.pack(pady=10, fill=X)
 
-        Label(form, text="Tìm kiếm:").pack(side=LEFT)
+        # Subject code
+        self.subjectCodeLabel = Label(self.formController, text="Mã môn:")
+        self.subjectCodeLabel.grid(row=0, column=0, padx=10, pady=5)
 
-        self.searchBar = Entry(form)
+        self.subjectCodeEntry = Entry(self.formController)
+        self.subjectCodeEntry.grid(row=0, column=1, padx=10, pady=5)
+
+        # Subject name
+        self.subjectNameLabel = Label(self.formController, text="Tên môn:")
+        self.subjectNameLabel.grid(row=0, column=2, padx=10, pady=5)
+
+        self.subjectNameEntry = Entry(self.formController)
+        self.subjectNameEntry.grid(row=0, column=3, padx=10, pady=5)
+
+        # Credit
+        self.creditLabel = Label(self.formController, text="Số tín chỉ:")
+        self.creditLabel.grid(row=0, column=4, padx=10, pady=5)
+
+        self.creditEntry = Entry(self.formController)
+        self.creditEntry.grid(row=0, column=5, padx=10, pady=5)
+
+        # Rate
+        self.rateLabel = Label(self.formController, text="Tỷ lệ điểm:")
+        self.rateLabel.grid(row=0, column=6, padx=10, pady=5)
+
+        self.rateEntry = Entry(self.formController)
+        self.rateEntry.grid(row=0, column=7, padx=10, pady=5)
+
+        # Create/Update button
+        self.submitButton = Button(self.formController, text="Thêm", command=self.handleCreateOrUpdateSubject)
+        self.submitButton.grid(row=4, column=0, pady=10)
+
+        self.cancelButton = Button(self.formController, text="Hủy", command=self.clearForm)
+        self.cancelButton.grid(row=4, column=1, pady=10)
+
+        # Search bar
+        self.searchBarFrame = Frame(self)
+        self.searchBarFrame.pack(pady=10)
+
+        Label(self.searchBarFrame, text="Tìm kiếm:").pack(side=LEFT)
+
+        self.searchBar = Entry(self.searchBarFrame)
         self.searchBar.pack(side=LEFT, padx=10)
 
-        searchButton = Button(form, text="Tìm kiếm", command=self.handleSearch)
+        searchButton = Button(self.searchBarFrame, text="Tìm kiếm", command=self.handleSearch)
         searchButton.pack(side=LEFT)
 
-        # tree view
+        # Tree view
         self.columns = ("#1", "#2", "#3", "#4")
         self.tree = Treeview(self, columns=self.columns, show="headings")
 
@@ -40,11 +80,11 @@ class Subjects(Frame):
 
         self.tree.bind("<Double-1>", self.editSubject)
         self.tree.bind("<Delete>", self.handleDeleteSubject)
-        self.tree.pack(padx=10)
+        self.tree.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
     def handleSearch(self):
         keyword = self.searchBar.get()
-        response = subject.search(keyword)
+        response = subjectAPI.search(keyword)
         if "success" in response and response["success"]:
             for item in self.tree.get_children():
                 self.tree.delete(item)
@@ -55,11 +95,11 @@ class Subjects(Frame):
             messagebox.showerror("Error", response["message"])
 
     def initData(self):
-        # remove all items in tree
+        # Remove all items in tree
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        response = subject.getAllSubjects()
+        response = subjectAPI.getAllSubjects()
         if "success" in response and response["success"]:
             for item in response["data"]:
                 self.insertItemToTree(item)
@@ -67,14 +107,50 @@ class Subjects(Frame):
     def insertItemToTree(self, subject):
         self.tree.insert("", "end", text=subject["id"], values=(subject["subjectCode"], subject["subjectName"], subject["credit"], subject["rate"]))
 
-    def handleEditSubject(self, root, id, data):
-        response = subject.updateSubject(id, data)
-        if "success" in response and response["success"]:
-            self.handleUpdateSubjectTree(id, data)
-            messagebox.showinfo("Success", "Cập nhật môn học thành công")
-            root.destroy()
+    def handleCreateOrUpdateSubject(self):
+        subjectCode = self.subjectCodeEntry.get()
+        subjectName = self.subjectNameEntry.get()
+        credit = self.creditEntry.get()
+        rate = self.rateEntry.get()
+
+        if not subjectCode or not subjectName or not credit or not rate:
+            messagebox.showerror("Error", "Vui lòng nhập đầy đủ thông tin")
+            return
+
+        if self.submitButton['text'] == "Thêm":
+            response = subjectAPI.createSubject({
+                "subjectCode": subjectCode,
+                "subjectName": subjectName,
+                "credit": credit,
+                "rate": rate
+            })
+
+            if "success" in response and response["success"]:
+                messagebox.showinfo("Success", "Tạo môn học thành công")
+                self.insertItemToTree(response["data"][0])
+                self.clearForm()
+            else:
+                messagebox.showerror("Error", response["message"])
         else:
-            messagebox.showerror("Error", response["message"])
+            selectedItem = self.tree.selection()[0]
+            subject_id = self.tree.item(selectedItem, "text")
+            response = subjectAPI.updateSubject(subject_id, {
+                "subjectCode": subjectCode,
+                "subjectName": subjectName,
+                "credit": credit,
+                "rate": rate
+            })
+            if "success" in response and response["success"]:
+                self.handleUpdateSubjectTree(subject_id, {
+                    "subjectCode": subjectCode,
+                    "subjectName": subjectName,
+                    "credit": credit,
+                    "rate": rate
+                })
+                messagebox.showinfo("Success", "Cập nhật môn học thành công")
+                self.clearForm()
+            else:
+                messagebox.showerror("Error", response["message"])
 
     def handleUpdateSubjectTree(self, id, data):
         for selectedItem in self.tree.selection():
@@ -85,142 +161,50 @@ class Subjects(Frame):
                 break
 
     def editSubject(self, event):
-        # create a top-level window
-        top = Toplevel()
-        top.title("Chỉnh sửa môn học")
+        # Get the selected item
+        selectedItem = self.tree.selection()[0]
+        item = self.tree.item(selectedItem)
+        record = item['text']
 
-        # get the selected item
-        for selectedItem in self.tree.selection():
-            item = self.tree.item(selectedItem)
-            record = item['text']
-
-        # get the selected item's data
-        response = subject.getSubjectById(record)
+        # Get the selected item's data
+        response = subjectAPI.getSubjectById(record)
         if "success" in response and response["success"]:
             data = response["data"][0]
         else:
             messagebox.showerror("Error", response["message"])
             return
 
-        # Subject code
-        subjectCodeLabel = Label(top, text="Mã môn:")
-        subjectCodeLabel.grid(row=0, column=0, padx=10, pady=5)
+        # Populate the form with the selected item's data
+        self.subjectCodeEntry.delete(0, END)
+        self.subjectCodeEntry.insert(0, data["subjectCode"])
 
-        subjectCodeEntry = Entry(top)
-        subjectCodeEntry.insert(0, data["subjectCode"])
-        subjectCodeEntry.grid(row=0, column=1, padx=10, pady=5)
+        self.subjectNameEntry.delete(0, END)
+        self.subjectNameEntry.insert(0, data["subjectName"])
 
-        # Subject name
-        subjectNameLabel = Label(top, text="Tên môn:")
-        subjectNameLabel.grid(row=1, column=0, padx=10, pady=5)
+        self.creditEntry.delete(0, END)
+        self.creditEntry.insert(0, data["credit"])
 
-        subjectNameEntry = Entry(top)
-        subjectNameEntry.insert(0, data["subjectName"])
-        subjectNameEntry.grid(row=1, column=1, padx=10, pady=5)
+        self.rateEntry.delete(0, END)
+        self.rateEntry.insert(0, data["rate"])
 
-        # Credit
-        creditLabel = Label(top, text="Số tín chỉ:")
-        creditLabel.grid(row=2, column=0, padx=10, pady=5)
-
-        creditEntry = Entry(top)
-        creditEntry.insert(0, data["credit"])
-        creditEntry.grid(row=2, column=1, padx=10, pady=5)
-
-        # Rate
-        rateLabel = Label(top, text="Tỷ lệ điểm:")
-        rateLabel.grid(row=3, column=0, padx=10, pady=5)
-
-        rateEntry = Entry(top)
-        rateEntry.insert(0, data["rate"])
-        rateEntry.grid(row=3, column=1, padx=10, pady=5)
-
-        # Update button
-        updateButton = Button(top, text="Update", command=lambda: self.handleEditSubject(top, data["id"], {
-            "subjectCode": subjectCodeEntry.get(),
-            "subjectName": subjectNameEntry.get(),
-            "credit": creditEntry.get(),
-            "rate": rateEntry.get()
-        }))
-        updateButton.grid(row=4, column=0, columnspan=2, pady=10)
+        self.submitButton.config(text="Cập nhật")
 
     def handleDeleteSubject(self, event):
-        for selectedItem in self.tree.selection():
-            item = self.tree.item(selectedItem)
-            record = item['text']
-            confirmation = messagebox.askquestion("Xác nhận xóa", "Bạn có chắc chắn muốn xóa không?")
-            if confirmation == "yes":
-                response = subject.deleteSubject(record)
-                if "success" in response and response["success"]:
-                    self.tree.delete(selectedItem)
-                else:
-                    messagebox.showerror("Error", response["message"])
+        selectedItem = self.tree.selection()[0]
+        item = self.tree.item(selectedItem)
+        record = item['text']
+        confirmation = messagebox.askquestion("Xác nhận xóa", "Bạn có chắc chắn muốn xóa không?")
+        if confirmation == "yes":
+            response = subjectAPI.deleteSubject(record)
+            if "success" in response and response["success"]:
+                self.tree.delete(selectedItem)
+                messagebox.showinfo("Success", "Xóa môn học thành công")
+            else:
+                messagebox.showerror("Error", response["message"])
 
-class SubjectCreate(Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.initUI()
-
-    def initUI(self):
-        # Subject label
-        self.subjectLabel = Label(self, text="Tạo môn học", font=("Helvetica", 18))
-        self.subjectLabel.pack(side="top", fill="x", pady=10, padx=10)
-
-        self.formController = Frame(self)
-        self.formController.pack(pady=10)
-
-        # Subject code
-        subjectCodeLabel = Label(self.formController, text="Mã môn:")
-        subjectCodeLabel.grid(row=0, column=0, padx=10, pady=5)
-
-        self.subjectCodeEntry = Entry(self.formController)
-        self.subjectCodeEntry.grid(row=0, column=1, padx=10, pady=5)
-
-        # Subject name
-        subjectNameLabel = Label(self.formController, text="Tên môn:")
-        subjectNameLabel.grid(row=1, column=0, padx=10, pady=5)
-
-        self.subjectNameEntry = Entry(self.formController)
-        self.subjectNameEntry.grid(row=1, column=1, padx=10, pady=5)
-
-        # Credit
-        creditLabel = Label(self.formController, text="Số tín chỉ:")
-        creditLabel.grid(row=2, column=0, padx=10, pady=5)
-
-        self.creditEntry = Entry(self.formController)
-        self.creditEntry.grid(row=2, column=1, padx=10, pady=5)
-
-        # Rate
-        rateLabel = Label(self.formController, text="Tỷ lệ điểm:")
-        rateLabel.grid(row=3, column=0, padx=10, pady=5)
-
-        self.rateEntry = Entry(self.formController)
-        self.rateEntry.grid(row=3, column=1, padx=10, pady=5)
-
-        # Create button
-        createButton = Button(self, text="Create", command=self.handleCreateSubject)
-        createButton.pack(pady=10)
-
-    def handleCreateSubject(self):
-        subjectCode = self.subjectCodeEntry.get()
-        subjectName = self.subjectNameEntry.get()
-        credit = self.creditEntry.get()
-        rate = self.rateEntry.get()
-
-        if not subjectCode or not subjectName or not credit or not rate:
-            messagebox.showerror("Error", "Vui lòng nhập đầy đủ thông tin")
-            return
-
-        response = subject.createSubject({
-            "subjectCode": subjectCode,
-            "subjectName": subjectName,
-            "credit": credit,
-            "rate": rate
-        })
-
-        if "success" in response and response["success"]:
-            messagebox.showinfo("Success", "Tạo môn học thành công")
-            self.controller.screens["Subjects"].insertItemToTree(response["data"][0])
-            self.controller.showFrame("Subjects")
-        else:
-            messagebox.showerror("Error", response["message"])
+    def clearForm(self):
+        self.subjectCodeEntry.delete(0, END)
+        self.subjectNameEntry.delete(0, END)
+        self.creditEntry.delete(0, END)
+        self.rateEntry.delete(0, END)
+        self.submitButton.config(text="Thêm")

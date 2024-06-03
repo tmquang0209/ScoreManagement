@@ -133,9 +133,7 @@ class SemesterCreate(Frame):
             "semester": name,
             "year": year
         })
-
-        print(response)
-
+        
         if "success" in response and response["success"]:
             messagebox.showinfo("Success", response["message"])
             self.controller.screens["Semester"].initData()

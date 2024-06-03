@@ -3,265 +3,236 @@ from tkinter.ttk import *
 from tkinter import messagebox
 from tkcalendar import Calendar
 
-from API import major
-
-from API import teacher
+from API import major as majorAPI, teacher as teacherAPI
 
 class Teacher(Frame):
-    def __init__ (self, parent, controller):
+    def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-
+        self.majorsList = majorAPI.getAllMajors()["data"] if majorAPI.getAllMajors()["success"] else []
         self.initUI()
 
     def initUI(self):
         title = Label(self, text="Danh sách giáo viên", font=("Helvetica", 18))
         title.pack(side="top", fill="x", pady=10, padx=10)
 
-        # Tree
-        self.tree = Treeview(self, columns=("Code", "Name", "Birthday", "Gender", "Department", "Email", "Phone", "Address"), show="headings", padding=10)
+        self.createForm()
+        self.createTreeView()
 
-        self.tree.column("Code", width=100)
-        self.tree.heading("Code", text="Mã giáo viên")
+    def createForm(self):
+        formFrame = Frame(self)
+        formFrame.pack(padx=10, pady=10, fill="x")
 
-        self.tree.heading("Name", text="Tên giáo viên")
+        Label(formFrame, text="Mã giáo viên").grid(row=0, column=0)
+        self.teacherCode = Entry(formFrame)
+        self.teacherCode.grid(row=0, column=1, padx=5, pady=10)
+
+        Label(formFrame, text="Tên giáo viên").grid(row=0, column=2)
+        self.name = Entry(formFrame)
+        self.name.grid(row=0, column=3, padx=5, pady=10)
+
+        Label(formFrame, text="Email").grid(row=0, column=5)
+        self.email = Entry(formFrame)
+        self.email.grid(row=0, column=6, padx=5, pady=10)
+
+        Label(formFrame, text="Số điện thoại").grid(row=0, column=7)
+        self.phone = Entry(formFrame)
+        self.phone.grid(row=0, column=8, padx=5, pady=10)
+
+        Label(formFrame, text="Địa chỉ").grid(row=1, column=0)
+        self.address = Entry(formFrame)
+        self.address.grid(row=1, column=1, padx=5, pady=10)
+
+        Label(formFrame, text="Ngày sinh").grid(row=1, column=2)
+        self.dob = Entry(formFrame)
+        self.dob.config(state="readonly")
+        self.dob.grid(row=1, column=3, padx=5, pady=10)
+
+        dobBtn = Button(formFrame, text="Chọn ngày", command=lambda: self.openCalendar(self.dob, self.dob.get() if self.dob.get() != "" else None))
+        dobBtn.grid(row=1, column=4, padx=5, pady=10)
+
+        Label(formFrame, text="Giới tính").grid(row=1, column=6, padx=5, pady=10)
+        self.gender = Combobox(formFrame, values=["Male", "Female"])
+        self.gender.grid(row=1, column=7, padx=5, pady=10)
+
+        Label(formFrame, text="Khoa/ Phòng ban").grid(row=1, column=8)
+        self.major = Combobox(formFrame, values=[major["majorName"] for major in self.majorsList])
+        self.major.grid(row=1, column=9, padx=5, pady=10)
+
+        submitBtn = Button(formFrame, text="Thêm giáo viên", command=self.handleCreateTeacher)
+        submitBtn.grid(row=2, column=1, padx=5, pady=10)
+
+    def createTreeView(self):
+        self.columns = ("Teacher_Code", "Teacher_Name", "Birthday", "Gender", "Department", "Email", "Phone", "Address")
+        self.tree = Treeview(self, columns=self.columns, show="headings")
+
+        self.tree.column("Teacher_Code", width=100)
+        self.tree.heading("Teacher_Code", text="Mã giáo viên")
+
+        self.tree.column("Teacher_Name", width=150)
+        self.tree.heading("Teacher_Name", text="Tên giáo viên")
 
         self.tree.column("Birthday", width=100)
         self.tree.heading("Birthday", text="Ngày sinh")
 
-        self.tree.column("Gender", width=100)
+        self.tree.column("Gender", width=80)
         self.tree.heading("Gender", text="Giới tính")
 
+        self.tree.column("Department", width=150)
         self.tree.heading("Department", text="Khoa/ Phòng ban")
 
-        self.tree.column("Email", width=100)
+        self.tree.column("Email", width=150)
         self.tree.heading("Email", text="Email")
 
         self.tree.column("Phone", width=100)
         self.tree.heading("Phone", text="Số điện thoại")
 
+        self.tree.column("Address", width=200)
         self.tree.heading("Address", text="Địa chỉ")
-        self.tree.pack()
+
+        self.tree.pack(fill="both", expand=True)
 
         self.tree.bind("<Double-1>", self.editTeacher)
         self.tree.bind("<Delete>", self.handleDelete)
 
     def initData(self):
-        # remove all items in tree
-        for item in self.tree.get_children():
-            self.tree.delete(item)
-
-        response = teacher.getAllTeachers()
-
+        response = teacherAPI.getAllTeachers()
         if "success" in response and response["success"]:
-            for item in response["data"]:
-                self.insertItemToTree(item)
-
-    def handleUpdateTeacherTree(self, id, data):
-        for selectedItem in self.tree.selection():
-            self.tree.item(selectedItem,
-                           text=id,
-                           values=(data["teacherCode"], data["name"],
-                                   data["dob"], data["gender"],
-                                   data["major"]["majorName"] if data["major"] != None else "", data["email"], data["phone"], data["address"]))
+            teachers = response["data"]
+            for teacher in teachers:
+                self.insertItemToTree(teacher)
 
     def insertItemToTree(self, teacher):
-        self.tree.insert("", "end",
-                         text=teacher["id"],
-                         values=(teacher["teacherCode"], teacher["name"],
-                                 teacher["dob"], teacher["gender"],
-                                 teacher["major"]["majorName"] if teacher["major"] != None else "", teacher["email"], teacher["phone"], teacher["address"]))
+        self.tree.insert("", "end", text=teacher["id"],
+                         values=(teacher["teacherCode"], teacher["name"], teacher["dob"], teacher["gender"],
+                                 teacher["major"]["majorName"] if teacher["major"] else "", teacher["email"], teacher["phone"], teacher["address"]))
 
-    def handleEditTeacher(self, root, id, data):
-        response = teacher.updateTeacher(id, data)
+    def handleCreateTeacher(self):
+        data = {
+            "teacherCode": self.teacherCode.get(),
+            "name": self.name.get(),
+            "email": self.email.get(),
+            "phone": self.phone.get(),
+            "address": self.address.get(),
+            "dob": self.dob.get(),
+            "gender": self.gender.get(),
+            "major": self.majorsList[self.major.current()],
+            "password": self.dob.get().replace("-", "")
+        }
+
+        response = teacherAPI.createTeacher(data)
         if response["success"]:
-            self.handleUpdateTeacherTree(id, data)
-            messagebox.showinfo("Success", "Cập nhật giáo viên thành công")
-            root.destroy()
+            self.insertItemToTree(response["data"][0])
+            messagebox.showinfo("Success", "Thêm giáo viên thành công. Mật khẩu mặc định là ngày sinh của giáo viên (yyyymmdd)")
+            self.clearForm()
         else:
             messagebox.showerror("Error", response["message"])
 
-    def editTeacher(self, event):
-        item = event.widget.selection()[0]
-        id = event.widget.item(item, "text")
-        data = event.widget.item(item, "values")
+    def clearForm(self):
+        self.teacherCode.delete(0, END)
+        self.name.delete(0, END)
+        self.email.delete(0, END)
+        self.phone.delete(0, END)
+        self.address.delete(0, END)
+        self.dob.config(state="normal")
+        self.dob.delete(0, END)
+        self.dob.config(state="readonly")
+        self.gender.set("")
+        self.major.set("")
 
-        # get major list
-        majorsList = major.getAllMajors()["data"]
+    def editTeacher(self, event):
+        selected = event.widget.selection()[0]
+        teacherId = event.widget.item(selected)["text"]
+        teacherData = event.widget.item(selected)["values"]
 
         root = Toplevel(self)
-        root.title("Cập nhật thông tin giáo viên")
+        root.title("Chỉnh sửa thông tin giáo viên")
 
         formController = Frame(root)
         formController.pack(padx=10, pady=10)
 
         Label(formController, text="Mã giáo viên").grid(row=0, column=0)
-        code = Entry(formController, width=25)
+        code = Entry(formController)
+        code.insert(0, teacherData[0])
         code.grid(row=0, column=1, padx=5, pady=10)
-        code.insert(0, data[0])
 
         Label(formController, text="Tên giáo viên").grid(row=1, column=0)
-        name = Entry(formController, width=25)
+        name = Entry(formController)
+        name.insert(0, teacherData[1])
         name.grid(row=1, column=1, padx=5, pady=10)
-        name.insert(0, data[1])
 
         Label(formController, text="Ngày sinh").grid(row=2, column=0)
-        dobEntry = Entry(formController, width=25)
-        dobEntry.grid(row=2, column=1, padx=10, pady=5)
-        dobEntry.insert(0, data[2] if data[2] != None else "")
+        dobEntry = Entry(formController)
+        dobEntry.insert(0, teacherData[2])
         dobEntry.config(state="readonly")
+        dobEntry.grid(row=2, column=1, padx=5, pady=10)
 
-        # choose date button
-        chooseDateButton = Button(formController, text="Chọn ngày", command=lambda: self.openCalendar(dobEntry, data[2]))
-        chooseDateButton.grid(row=2, column=2, padx=10, pady=5)
+        dobBtn = Button(formController, text="Chọn ngày", command=lambda: self.openCalendar(dobEntry, teacherData[2]))
+        dobBtn.grid(row=2, column=2, padx=5, pady=10)
 
         Label(formController, text="Giới tính").grid(row=3, column=0)
-        genderEntry = Combobox(formController, values=["Male", "Female"], width=25)
-        genderEntry.insert(0, data[3])
-        genderEntry.grid(row=3, column=1, padx=10, pady=5)
+        genderEntry = Combobox(formController, values=["Male", "Female"])
+        genderEntry.insert(0, teacherData[3])
+        genderEntry.grid(row=3, column=1, padx=5, pady=10)
 
         Label(formController, text="Khoa/ Phòng ban").grid(row=4, column=0)
-        departmentEntry = Combobox(formController, values=[major["majorName"] for major in majorsList], width=25)
-        departmentEntry.insert(0, data[4])
-        departmentEntry.grid(row=4, column=1, padx=10, pady=5)
+        departmentEntry = Combobox(formController, values=[major["majorName"] for major in self.majorsList])
+        departmentEntry.insert(0, teacherData[4])
+        departmentEntry.grid(row=4, column=1, padx=5, pady=10)
 
         Label(formController, text="Email").grid(row=5, column=0)
-        email = Entry(formController, width=25)
+        email = Entry(formController)
+        email.insert(0, teacherData[5])
         email.grid(row=5, column=1, padx=5, pady=10)
-        email.insert(0, data[5])
 
         Label(formController, text="Số điện thoại").grid(row=6, column=0)
-        phone = Entry(formController, width=25)
+        phone = Entry(formController)
+        phone.insert(0, teacherData[6])
         phone.grid(row=6, column=1, padx=5, pady=10)
-        phone.insert(0, data[6])
 
         Label(formController, text="Địa chỉ").grid(row=7, column=0)
-        address = Entry(formController, width=25)
+        address = Entry(formController)
+        address.insert(0, teacherData[7])
         address.grid(row=7, column=1, padx=5, pady=10)
-        address.insert(0, data[7])
 
-        submitButton = Button(formController, text="Cập nhật", command=lambda: self.handleEditTeacher(root, id, {
+        submitBtn = Button(formController, text="Cập nhật thông tin", command=lambda: self.updateTeacher({
+            "teacherId": teacherId,
             "teacherCode": code.get(),
             "name": name.get(),
             "dob": dobEntry.get(),
             "gender": genderEntry.get(),
-            "major": majorsList[departmentEntry.current()],
+            "major": self.majorsList[departmentEntry.current()],
             "email": email.get(),
             "phone": phone.get(),
             "address": address.get()
-        }))
-        submitButton.grid(row=8, column=1, padx=5, pady=10)
-
-    def openCalendar(self, dobEntry, birthDate):
-        birthYear, birthMonth, birthDay = birthDate.split("-") if birthDate != "" else (2000, 1, 1)
-
-        top = Toplevel(self)
-        cal = Calendar(top, selectmode="day", year=int(birthYear), month=int(birthMonth), day=int(birthDay))
-        cal.pack(padx=10, pady=10)
-
-        def grab_date():
-            date = cal.selection_get()
-            formatted_date = date.strftime('%Y-%m-%d')
-            dobEntry.config(state="normal")
-            dobEntry.delete(0, END)
-            dobEntry.insert(0, formatted_date)
-            dobEntry.config(state="readonly")
-            top.destroy()
-
-        Button(top, text="Chọn", command=grab_date).pack(pady=10)
-
+        }, root))
+        submitBtn.grid(row=8, column=1, padx=5, pady=10)
 
     def handleDelete(self, event):
-        item = event.widget.selection()[0]
-        data = event.widget.item(item, "values")
+        selected = event.widget.selection()[0]
+        teacherId = event.widget.item(selected)["text"]
 
-        confirmation = messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn xóa giáo viên này?")
-        if not confirmation:
-            return
+        response = messagebox.askyesno("Delete", "Are you sure you want to delete this teacher?")
+        if response:
+            response = teacherAPI.deleteTeacher(teacherId)
+            if response["success"]:
+                self.tree.delete(selected)
+            else:
+                messagebox.showerror("Error", response["message"])
 
-        response = teacher.deleteTeacher(data[0])
+    def updateTeacher(self, data, root):
+        response = teacherAPI.updateTeacher(data)
         if response["success"]:
-            self.tree.delete(item)
-            messagebox.showinfo("Success", "Xóa giáo viên thành công")
+            for item in self.tree.get_children():
+                if self.tree.item(item)["text"] == data["teacherId"]:
+                    self.tree.item(item, values=(data["teacherCode"], data["name"], data["dob"], data["gender"], data["major"]["majorName"], data["email"], data["phone"], data["address"]))
+            messagebox.showinfo("Success", "Cập nhật thông tin giáo viên thành công")
+            root.destroy()
         else:
             messagebox.showerror("Error", response["message"])
 
-class TeacherCreate(Frame):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-
-        self.initUI()
-
-    def initUI(self):
-        # get major list
-        majorsList = major.getAllMajors()["data"]
-
-        title = Label(self, text="Thêm giáo viên mới", font=("Helvetica", 18))
-        title.pack(side="top", fill="x", pady=10, padx=10)
-
-        form = Frame(self)
-        form.pack(padx=10, pady=10)
-
-        Label(form, text="Mã giáo viên").grid(row=0, column=0)
-        code = Entry(form)
-        code.grid(row=0, column=1, padx=5, pady=10)
-
-        Label(form, text="Tên giáo viên").grid(row=1, column=0)
-        name = Entry(form)
-        name.grid(row=1, column=1, padx=5, pady=10)
-
-        Label(form, text="Email").grid(row=2, column=0)
-        email = Entry(form)
-        email.grid(row=2, column=1, padx=5, pady=10)
-
-        Label(form, text="Số điện thoại").grid(row=3, column=0)
-        phone = Entry(form)
-        phone.grid(row=3, column=1, padx=5, pady=10)
-
-        Label(form, text="Địa chỉ").grid(row=4, column=0)
-        address = Entry(form)
-        address.grid(row=4, column=1, padx=5, pady=10)
-
-        Label(form, text="Ngày sinh").grid(row=5, column=0)
-        dobEntry = Entry(form)
-        dobEntry.grid(row=5, column=1, padx=10, pady=5)
-        dobEntry.config(state="readonly")
-
-        # choose date button
-        chooseDateButton = Button(form, text="Chọn ngày", command=lambda: self.openCalendar(dobEntry))
-        chooseDateButton.grid(row=5, column=2, padx=10, pady=5)
-
-        Label(form, text="Giới tính").grid(row=6, column=0)
-        genderEntry = Combobox(form, values=["Male","Female"])
-        genderEntry.grid(row=6, column=1, padx=10, pady=5)
-
-        Label(form, text="Khoa/ Phòng ban").grid(row=7, column=0)
-        departmentEntry = Combobox(form, values=[major["majorName"] for major in majorsList])
-        departmentEntry.grid(row=7, column=1, padx=10, pady=5)
-
-        submitButton = Button(form, text="Thêm giáo viên", command=lambda: self.handleSubmit({
-            "teacherCode": code.get(),
-            "name": name.get(),
-            "email": email.get(),
-            "phone": phone.get(),
-            "address": address.get(),
-            "dob": dobEntry.get(),
-            "major": majorsList[departmentEntry.current()],
-            "password": dobEntry.get().replace("-", "")
-        }))
-        submitButton.grid(row=8, column=1, padx=5, pady=10)
-
-    def handleSubmit(self, data):
-        response = teacher.createTeacher(data)
-        if response["success"]:
-            self.controller.screens["Teacher"].insertItemToTree(response["data"][0])
-            messagebox.showinfo("Success", "Thêm giáo viên thành công. Mật khẩu mặc định là ngày sinh của giáo viên (yyyymmdd)")
-        else:
-            messagebox.showerror("Error", response["message"])
-
-    def openCalendar(self, dobEntry):
-        birthYear, birthMonth, birthDay = (2000, 1, 1)
+    def openCalendar(self, dobEntry, birthDate):
+        birthYear, birthMonth, birthDay = birthDate.split("-") if birthDate != None else (2000, 1, 1)
 
         top = Toplevel(self)
         cal = Calendar(top, selectmode="day", year=int(birthYear), month=int(birthMonth), day=int(birthDay))

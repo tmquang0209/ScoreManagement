@@ -6,17 +6,16 @@ import json
 from screens.home import Home
 from screens.login import Login
 from screens.years import Years
-from screens.YearAction.create import YearCreate
 from screens.personalInfo import PersonalInfo
 from screens.changePassword import ChangePassword
-from screens.subjects import Subjects, SubjectCreate
-from screens.department import Department, DepartmentCreate
-from screens.major import Major, MajorCreate
-from screens.employee import Employee, EmployeeCreate
-from screens.teacher import Teacher, TeacherCreate
-from screens.student import Student, StudentCreate
+from screens.subjects import Subjects
+from screens.department import Department
+from screens.major import Major
+from screens.employee import Employee
+from screens.teacher import Teacher
+from screens.student import Student
 from screens.semester import Semester, SemesterCreate
-from screens.schedule import Schedule, ScheduleCreate
+from screens.schedule import Schedule
 from screens.enrollment import Enrollment, EnrollmentRecords
 from screens.score import Score, ScoreCreate, ScoreDetail
 
@@ -44,7 +43,7 @@ class ScoreApp(Tk):
 
         self.screens = {}
 
-        for F in (Home, Login, Years, YearCreate, PersonalInfo, ChangePassword, Subjects, SubjectCreate, Department, DepartmentCreate, Major, MajorCreate, Teacher, TeacherCreate, Student, StudentCreate, Semester, SemesterCreate, Schedule, ScheduleCreate, Employee, EmployeeCreate, Enrollment, EnrollmentRecords, Score, ScoreCreate, ScoreDetail):
+        for F in (Home, Login, Years, PersonalInfo, ChangePassword, Subjects, Department, Major, Teacher, Student, Semester, SemesterCreate, Schedule, Employee, Enrollment, EnrollmentRecords, Score, ScoreCreate, ScoreDetail):
             pageName = F.__name__
 
             # if __init__ method has scheduleId parameter
