@@ -1,3 +1,6 @@
 __pycache__/
 migrations/
 venv/
+build/
+dist/
+*.spec
