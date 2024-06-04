@@ -2,51 +2,69 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
 
-from API import enrollment as enrollmentAPI, year as yearAPI, semester as semesterAPI, subject as subjectAPI, schedule as scheduleAPI, student as studentAPI
+from API import year as yearAPI, semester as semesterAPI, subject as subjectAPI, schedule as scheduleAPI, score as scoreAPI, enrollment as enrollmentAPI, student as studentAPI
 
 class Enrollment(Frame):
     def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+        super().__init__(parent)
         self.controller = controller
         self.initUI()
 
-    def handleYearChange(self, event, yearsList = []):
-        year = yearsList[self.year.current()]["id"]
+    def initData(self):
+        self.years = yearAPI.getAllYears()["data"] if "data" in yearAPI.getAllYears() else []
+        self.subjects = subjectAPI.getAllSubjects()["data"] if "data" in subjectAPI.getAllSubjects() else []
+        self.students = studentAPI.getAllStudents()["data"] if "data" in studentAPI.getAllStudents() else []
 
-        self.semesters = semesterAPI.getSemesterByYear(year)["data"] if "data" in semesterAPI.getSemesterByYear(year) else []
+        self.yearCombobox.set("")
+        self.yearCombobox["values"] = [year["year"] for year in self.years]
 
-        self.semester.set("")
-        self.semester["values"] = [semester["semester"] for semester in self.semesters]
+        self.subjectCombobox.set("")
+        self.subjectCombobox["values"] = [subject["subjectName"] for subject in self.subjects]
+
+        self.studentCombobox.set("")
+        self.studentCombobox["values"] = [f"{student['studentCode']} - {student['name']}" for student in self.students]
 
     def initUI(self):
-        self.form = Frame(self)
+        self.enrollmentContainer = Frame(self)
+        self.enrollmentContainer.pack(pady=20, side=LEFT, fill=BOTH, expand=True)
+
+        self.scoreContainer = Frame(self)
+        self.scoreContainer.pack(pady=20, side=LEFT, fill=BOTH, expand=True)
+
+        self.createFormUI()
+        self.createTreeViewUI()
+        self.createScoreUI()
+        self.createEnrollmentUI()
+
+    def createFormUI(self):
+        self.form = Frame(self.enrollmentContainer)
         self.form.pack(pady=20)
 
-        self.years = yearAPI.getAllYears()["data"] if "data" in yearAPI.getAllYears() else []
+        self.years = []
         self.semesters = []
-        self.subjects = subjectAPI.getAllSubjects()["data"] if "data" in subjectAPI.getAllSubjects() else []
+        self.subjects = []
 
-        Label(self.form, text="Năm học").grid(row=0, column=0)
-        self.year = Combobox(self.form, values=[year["year"]for year in self.years])
-        self.year.grid(row=0, column=1)
-        self.year.bind("<<ComboboxSelected>>", lambda event:self.handleYearChange(event,yearsList=self.years))
+        Label(self.form, text="Năm học").grid(row=0, column=0, padx=5, pady=5)
+        self.yearCombobox = Combobox(self.form, state="readonly")
+        self.yearCombobox.grid(row=0, column=1, padx=5, pady=5)
+        self.yearCombobox.bind("<<ComboboxSelected>>", self.onYearChange)
 
-        Label(self.form, text="Học kỳ").grid(row=0, column=2)
-        self.semester = Combobox(self.form)
-        self.semester.grid(row=0, column=3)
+        Label(self.form, text="Học kỳ").grid(row=0, column=2, padx=5, pady=5)
+        self.semesterCombobox = Combobox(self.form)
+        self.semesterCombobox.grid(row=0, column=3, padx=5, pady=5)
 
-        Label(self.form, text="Môn học").grid(row=0, column=4)
-        self.subject = Combobox(self.form, values=[subject["subjectName"] for subject in self.subjects])
-        self.subject.grid(row=0, column=5)
+        Label(self.form, text="Môn học").grid(row=1, column=0, padx=5, pady=5)
+        self.subjectCombobox = Combobox(self.form, state="readonly")
+        self.subjectCombobox.grid(row=1, column=1, padx=5, pady=5)
 
+        Label(self.form, text="Lớp").grid(row=1, column=2, padx=5, pady=5)
+        self.classNameEntry = Entry(self.form)
+        self.classNameEntry.grid(row=1, column=3, padx=5, pady=5)
 
-        Label(self.form, text="Lớp").grid(row=0, column=6)
-        self.className = Entry(self.form)
-        self.className.grid(row=0, column=7)
+        Button(self.form, text="Tìm kiếm", command=self.handleSearch).grid(row=2, columnspan=4, column=0, padx=5, pady=5)
 
-        Button(self.form, text="Tìm kiếm", command=lambda: self.handleSearch(self.semesters, self.subjects)).grid(row=0, column=8)
-
-        self.tree = Treeview(self, columns=("#1", "#2"), show="headings")
+    def createTreeViewUI(self):
+        self.tree = Treeview(self.enrollmentContainer, columns=("#1", "#2"), show="headings")
         self.tree.pack(pady=20)
 
         self.tree.column("#1", anchor=CENTER)
@@ -55,126 +73,215 @@ class Enrollment(Frame):
         self.tree.column("#2", anchor=CENTER)
         self.tree.heading("#2", text="Số lượng sinh viên")
 
-        self.tree.bind("<Double-1>", self.viewRecords)
-        # self.tree.bind("<Delete>", self.deleteEnrollment)
+        self.tree.bind("<<TreeviewSelect>>", self.viewRecords)
 
-    def initData(self):
-        print("init data")
-        # years = yearAPI.getAllYears()["data"] if "data" in yearAPI.getAllYears() else []
+    def createScoreUI(self):
+        def handleOpenCreateScore():
+            if self.scheduleId:
+                self.controller.screens["ScoreCreate"].initData(self.scheduleId)
+                self.controller.showFrame("ScoreCreate", self.scheduleId)
+            else:
+                messagebox.showerror("Lỗi", "Vui lòng chọn lịch học")
 
-        # subjects = subjectAPI.getAllSubjects()["data"] if "data" in subjectAPI.getAllSubjects() else []
+        self.scoreFrame = Frame(self.scoreContainer)
+        self.scoreFrame.pack(pady=20)
 
-        # self.updateForm(years, subjects)
+        Button(self.scoreFrame, text="Nhập điểm", command=handleOpenCreateScore).pack(pady=20)
 
-    def updateForm(self, years = [], subjects = []):
-        # add values to combobox
-        self.year["values"] = [year["year"] for year in years]
+        self.scoreTree = Treeview(self.scoreFrame, columns=("#1", "#2", "#3", "#4", "#5"), show="headings")
 
-    def updateData(self, data):
+        self.scoreTree.column("#1", width=100, anchor=CENTER)
+        self.scoreTree.heading("#1", text="Mã sinh viên")
+
+        self.scoreTree.column("#2", width=150, anchor=CENTER)
+        self.scoreTree.heading("#2", text="Tên sinh viên")
+
+        self.scoreTree.column("#3", width=100, anchor=CENTER)
+        self.scoreTree.heading("#3", text="Điểm giữa kỳ")
+
+        self.scoreTree.column("#4", width=100, anchor=CENTER)
+        self.scoreTree.heading("#4", text="Điểm cuối kỳ")
+
+        self.scoreTree.column("#5", width=100, anchor=CENTER)
+        self.scoreTree.heading("#5", text="Điểm trung bình")
+
+        self.scoreTree.pack(pady=20)
+        self.scoreTree.bind("<Double-1>", self.editScore)
+
+    def createEnrollmentUI(self):
+        self.enrollmentFrame = Frame(self.scoreContainer)
+        self.enrollmentFrame.pack(pady=20)
+
+        self.enrollmentForm = Frame(self.enrollmentFrame)
+        self.enrollmentForm.pack(pady=20)
+
+        Label(self.enrollmentForm, text="Sinh viên").grid(row=0, column=0, padx=5, pady=5)
+        self.studentCombobox = Combobox(self.enrollmentForm)
+        self.studentCombobox.grid(row=0, column=1, padx=5, pady=5)
+
+        Button(self.enrollmentForm, text="Thêm", command=self.handleAddEnrollment).grid(row=0, column=2, padx=5, pady=5)
+
+        self.enrollmentTree = Treeview(self.enrollmentFrame, columns=("#1", "#2"), show="headings")
+        self.enrollmentTree.pack(pady=20)
+
+        self.enrollmentTree.column("#1", anchor=CENTER)
+        self.enrollmentTree.heading("#1", text="Mã sinh viên")
+
+        self.enrollmentTree.column("#2", anchor=CENTER)
+        self.enrollmentTree.heading("#2", text="Họ tên")
+
+        self.enrollmentTree.bind("<Delete>", self.deleteEnrollmentRecord)
+
+    def onYearChange(self, event):
+        yearValue = self.yearCombobox.current()
+        year = self.years[yearValue] if yearValue != -1 else ""
+        self.semesters = semesterAPI.getSemesterByYear(year["id"])["data"] if "data" in semesterAPI.getSemesterByYear(year["id"]) else []
+
+        self.semesterCombobox.set("")
+        self.semesterCombobox["values"] = [semesters["semester"] for semesters in self.semesters]
+
+    def handleSearch(self):
+        yearValue = self.yearCombobox.current()
+        semesterValue = self.semesterCombobox.current()
+        subjectValue = self.subjectCombobox.current()
+
+        year = self.years[yearValue] if yearValue != -1 else ""
+        semester = self.semesters[semesterValue] if semesterValue != -1 else ""
+        subject = self.subjects[subjectValue] if subjectValue != -1 else ""
+        className = self.classNameEntry.get()
+
+        if yearValue == -1 or semesterValue == -1:
+            messagebox.showerror("Lỗi", "Vui lòng chọn đầy đủ thông tin")
+            return
+
+        searchData = {
+            "semesterId": semester["id"],
+            "subjectId": subject["id"] if subject else "",
+            "className": className if className else ""
+        }
+        schedules = scheduleAPI.searchSchedules(searchData)["data"] if "data" in scheduleAPI.searchSchedules(searchData) else []
+
+        self.updateTreeView(schedules)
+
+    def updateTreeView(self, data):
         self.tree.delete(*self.tree.get_children())
-
         for schedule in data:
             self.tree.insert("", "end", text=schedule["id"], values=(schedule["className"], schedule["currentStudent"]))
 
     def viewRecords(self, event):
         item = self.tree.selection()[0]
-        scheduleId = self.tree.item(item, "text")
-        self.controller.screens["EnrollmentRecords"].initData(scheduleId)
-        self.controller.showFrame("EnrollmentRecords", scheduleId=scheduleId)
+        self.scheduleId = self.tree.item(item, "text")
+        self.showScoreDetails(self.scheduleId)
+        self.showEnrollmentDetails(self.scheduleId)
 
-    def handleSearch(self, semesters = [], subjects = []):
-        semesterId = semesters[self.semester.current()]["id"]
+    def showScoreDetails(self, scheduleId):
+        scores = scoreAPI.getByScheduleId(scheduleId)["data"] if "data" in scoreAPI.getByScheduleId(scheduleId) else []
+        self.updateScoreTreeView(scores)
 
-        subjectId = subjects[self.subject.current()]["id"] if self.subject.current() != -1 else None
-        className = self.className.get()
+    def updateScoreTreeView(self, scores):
+        self.scoreTree.delete(*self.scoreTree.get_children())
+        for score in scores:
+            self.scoreTree.insert("", "end", values=(
+                score["studentCode"],
+                score["studentName"],
+                score["midtermScore"],
+                score["finalScore"],
+                score["score"]
+            ))
 
-        schedules = scheduleAPI.searchSchedules({
-            "semesterId": semesterId,
-            "subjectId": subjectId,
-            "className": className if className != "" else None
-        })["data"] if "data" in scheduleAPI.searchSchedules({
-            "semesterId": semesterId,
-            "subjectId": subjectId,
-            "className": className if className != "" else None
-        }) else []
+    def editScore(self, event):
+        def handleSave(midtermScore, finalScore, studentCode):
+            data = {
+                "studentCode": studentCode,
+                "midtermTest": midtermScore,
+                "finalTest": finalScore
+            }
 
-        self.updateData(schedules)
+            response = scoreAPI.update(self.scheduleId, data)
 
-    # def deleteEnrollment(self, event):
-    #     item = self.tree.selection()[0]
-    #     className = self.tree.item(item, "values")[0]
-    #     if messagebox.askyesno("Xác nhận", f"Xác nhận xóa lớp {className}"):
-    #         enrollmentAPI.deleteEnrollment(className)
-    #         self.handleSearch()
+            if response["success"]:
+                messagebox.showinfo("Thành công", response["message"])
+            else:
+                messagebox.showerror("Lỗi", response["message"])
 
-class EnrollmentRecords(Frame):
-    def __init__(self, parent, controller, scheduleId):
-        Frame.__init__(self, parent)
-        self.controller = controller
-        self.scheduleId = scheduleId
-        self.initUI()
+            root.destroy()
 
-    def initUI(self):
-        self.form = Frame(self)
-        self.form.pack(pady=20)
+            self.showScoreDetails(self.scheduleId)
 
-        Label(self.form, text="Sinh viên").grid(row=0, column=0, padx=5, pady=5)
-        self.student = Combobox(self.form)
-        self.student.grid(row=0, column=1, padx=5, pady=5)
+        item = self.scoreTree.selection()[0]
+        studentCode = self.scoreTree.item(item, "values")[0]
 
-        Button(self.form, text="Thêm", command=self.handleAdd).grid(row=0, column=2, padx=5, pady=5)
+        studentId = studentAPI.getStudentByCode(studentCode)["data"][0]["id"] if "data" in studentAPI.getStudentByCode(studentCode) else ""
 
-        self.tree = Treeview(self, columns=("#1", "#2"), show="headings")
-        self.tree.pack(pady=20)
+        score = scoreAPI.getByStudentIdAndScheduleId(self.scheduleId, studentId)["data"][0] if "data" in scoreAPI.getByStudentIdAndScheduleId(self.scheduleId, studentId) else ""
 
-        self.tree.column("#1", anchor=CENTER)
-        self.tree.heading("#1", text="Mã sinh viên")
+        root = Toplevel(self)
+        root.title("Chỉnh sửa điểm")
 
-        self.tree.column("#2", anchor=CENTER)
-        self.tree.heading("#2", text="Họ tên")
+        Label(root, text="Mã sinh viên").grid(row=0, column=0, padx=5, pady=5)
+        Label(root, text=studentCode).grid(row=0, column=1, padx=5, pady=5)
 
-        self.tree.bind("<Delete>", self.deleteRecord)
+        Label(root, text="Tên sinh viên").grid(row=1, column=0, padx=5, pady=5)
+        Label(root, text=score["studentName"]).grid(row=1, column=1, padx=5, pady=5)
 
-    def initData(self, scheduleId):
-        self.scheduleId = scheduleId
-        studentsList = studentAPI.getAllStudents()["data"] if "data" in studentAPI.getAllStudents() else []
-        self.student["values"] = [student["studentCode"] for student in studentsList]
+        Label(root, text="Điểm giữa kỳ").grid(row=2, column=0, padx=5, pady=5)
+        midtermScore = Entry(root)
+        midtermScore.insert(0, score["midtermScore"])
+        midtermScore.grid(row=2, column=1, padx=5, pady=5)
 
-        self.students = enrollmentAPI.getEnrollments(scheduleId)["data"] if "data" in enrollmentAPI.getEnrollments(scheduleId) else []
-        self.updateData()
+        Label(root, text="Điểm cuối kỳ").grid(row=3, column=0, padx=5, pady=5)
+        finalScore = Entry(root)
+        finalScore.insert(0, score["finalScore"])
+        finalScore.grid(row=3, column=1, padx=5, pady=5)
 
-    def updateData(self):
-        self.tree.delete(*self.tree.get_children())
+        Button(root, text="Lưu", command=lambda: handleSave(midtermScore.get(), finalScore.get(), studentCode)).grid(row=4, column=1, padx=5, pady=5)
 
-        # delete all items in tree
-        for i in self.tree.get_children():
-            self.tree.delete(i)
+    def showEnrollmentDetails(self, scheduleId):
+        enrollments = enrollmentAPI.getEnrollments(scheduleId)["data"] if "data" in enrollmentAPI.getEnrollments(scheduleId) else []
+        print(enrollments)
+        self.updateEnrollmentTreeView(enrollments)
 
-        for student in self.students:
-            self.tree.insert("", "end", text=student["id"], values=(student["studentCode"], student["name"]))
+    def updateEnrollmentTreeView(self, enrollments):
+        self.enrollmentTree.delete(*self.enrollmentTree.get_children())
+        for enrollment in enrollments:
+            self.enrollmentTree.insert("", "end", values=(enrollment["studentCode"], enrollment["name"]))
 
-    def handleAdd(self):
-        studentId = self.student.get()
-        response = enrollmentAPI.addEnrollment(self.scheduleId, studentId)
+    def handleAddEnrollment(self):
+        studentValue = self.studentCombobox.current()
+        print(studentValue)
+        student = self.students[studentValue] if studentValue != -1 else ""
+
+        print(student)
+
+        if studentValue == -1:
+            messagebox.showerror("Lỗi", "Vui lòng chọn sinh viên")
+            return
+
+        data = {
+            "scheduleId": self.scheduleId,
+            "studentId": student["id"]
+        }
+
+        response = enrollmentAPI.addEnrollment(self.scheduleId, student["id"])
 
         if response["success"]:
-            self.addRecord(response["data"][0])
+            messagebox.showinfo("Thành công", response["message"])
         else:
             messagebox.showerror("Lỗi", response["message"])
 
-    def addRecord(self, data):
-        self.tree.insert("", "end", text=data["id"], values=(data["studentCode"], data["name"]))
+        self.showEnrollmentDetails(self.scheduleId)
 
-    def deleteRecord(self, event):
-        item = event.widget.selection()[0]
-        studentId = self.tree.item(item, "text")
-        studentCode = self.tree.item(item, "values")[0]
-        print("enrollment id", studentId, self.scheduleId)
+    def deleteEnrollmentRecord(self, event):
+        item = self.enrollmentTree.selection()[0]
+        studentCode = self.enrollmentTree.item(item, "values")[0]
 
-        if messagebox.askyesno("Xác nhận", f"Xác nhận xóa sinh viên {studentCode} khỏi lớp"):
-            response = enrollmentAPI.deleteEnrollment(studentId, self.scheduleId)
+        studentId = studentAPI.getStudentByCode(studentCode)["data"][0]["id"] if "data" in studentAPI.getStudentByCode(studentCode) else ""
 
-            if response["success"]:
-                self.tree.delete(item)
-            else:
-                messagebox.showerror("Lỗi", response["message"])
+        response = enrollmentAPI.delete(self.scheduleId, studentId)
+
+        if response["success"]:
+            messagebox.showinfo("Thành công", response["message"])
+        else:
+            messagebox.showerror("Lỗi", response["message"])
+
+        self.showEnrollmentDetails(self.scheduleId)

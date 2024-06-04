@@ -16,8 +16,8 @@ from screens.teacher import Teacher
 from screens.student import Student
 from screens.semester import Semester, SemesterCreate
 from screens.schedule import Schedule
-from screens.enrollment import Enrollment, EnrollmentRecords
-from screens.score import Score, ScoreCreate, ScoreDetail
+from screens.enrollment import Enrollment
+from screens.score import ScoreCreate
 
 from API.user import verifyToken, getPersonalInfo
 
@@ -43,7 +43,7 @@ class ScoreApp(Tk):
 
         self.screens = {}
 
-        for F in (Home, Login, Years, PersonalInfo, ChangePassword, Subjects, Department, Major, Teacher, Student, Semester, SemesterCreate, Schedule, Employee, Enrollment, EnrollmentRecords, Score, ScoreCreate, ScoreDetail):
+        for F in (Home, Login, Years, PersonalInfo, ChangePassword, Subjects, Department, Major, Teacher, Student, Semester, SemesterCreate, Schedule, Employee, Enrollment, ScoreCreate):
             pageName = F.__name__
 
             # if __init__ method has scheduleId parameter
